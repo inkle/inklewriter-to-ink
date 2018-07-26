@@ -7,6 +7,7 @@ let interceptJSON = JSON.parse(interceptJSONTest);
 try {
     let inkText = inklewriter_convert_1.convert(interceptJSON);
     console.log(inkText);
+    fs.writeFileSync("theintercept.ink", inkText, "utf8");
 }
 catch (error) {
     console.error(error);
