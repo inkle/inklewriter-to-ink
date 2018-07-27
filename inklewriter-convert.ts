@@ -93,7 +93,7 @@ class Stitch {
         
         this.divert = null;
         this.runOn = false;
-        this.flagName = null;
+        this.flagNames = [];
         this.image = null;
 
         this.pageNum = -1;
@@ -150,7 +150,7 @@ class Stitch {
 
             // flag
             else if( (c as flag).flagName !== undefined ) {
-                this.flagName = (c as flag).flagName;
+                this.flagNames.push((c as flag).flagName);
             }
 
             // image
@@ -194,7 +194,7 @@ class Stitch {
     conditions : Condition[]
     divert : string | null
     runOn : boolean
-    flagName : string | null
+    flagNames : string[]
     image : string | null
 
     divertBackLinks : Stitch[]
@@ -323,7 +323,7 @@ class Story {
     }
 }
 
-function createIdentifierFromString(str : string) : string {
+function createIdentifierFromString(str : string, collisionDictionary : {[existingName:string]:any}) : string {
     let id = "";
     for(let c of str) {
         // Allow a-z etc
@@ -344,7 +344,74 @@ function createIdentifierFromString(str : string) : string {
         id = id.substr(0, id.length-1);
     }
 
+    // Avoid naming collisions
+    let originalId = id;
+    let count = 2;
+    while(collisionDictionary[id]) {
+        id = `${originalId}_${count}`;
+        count++;
+    }
+
     return id;
+}
+
+interface flagDeclaration {
+    flagName : string
+    simpleDecl : true
+}
+
+interface flagAssignment {
+    flagName : string
+    assign : true
+    value : number | boolean
+}
+
+interface flagMathOp {
+    flagName : string
+    mathOp : true
+    op : string
+    value : number
+}
+
+type parsedFlag = flagDeclaration | flagAssignment | flagMathOp;
+
+function parseFlag(flagText : string) : parsedFlag {
+    let result : any = {}
+
+    // Assignment
+    var assignPos = flagText.indexOf("=");
+    if( assignPos !== -1 ) {
+        result.flagName = flagText.substr(0, assignPos).trim(); 
+        result.assign = true;
+        let valueTxt = flagText.substr(assignPos+1).trim();
+        if( valueTxt === "true" )
+            result.value = true
+        else if( valueTxt === "false" )
+            result.value = false;
+        else {
+            result.value = parseInt(valueTxt);
+        }
+    }
+
+    // Inc/dec
+    var mathOpPos = flagText.search(/(\+|-|\*|\/)/);
+    if( !result.assign && mathOpPos !== -1 ) {
+        let op = flagText[mathOpPos];
+        result.flagName = flagText.substr(0, mathOpPos).trim(); 
+        result.flagName = flagText.substr(0, mathOpPos).trim(); 
+        let valueTxt = flagText.substr(assignPos+1).trim();
+        result.op = op;
+        result.value = parseInt(valueTxt);
+        result.mathOp = true;
+    }
+
+    // Simple flag decl
+    if( !result.assign && !result.mathOp ) {
+        result.simpleDecl = true;
+        result.flagName = flagText.trim();
+    }
+
+    return result;
 }
 
 let inkLines : string[];
@@ -362,15 +429,7 @@ export function convert(sourceJSON : inklewriterJSON) : string {
         let inkName = stitch.name;
 
         if( stitch.isHeader && stitch.pageLabel )
-            inkName = createIdentifierFromString(stitch.pageLabel);
-
-        // Avoid naming collisions
-        let rootName = inkName;
-        let count = 2;
-        while(inklewriterStitchToInkNames[inkName]) {
-            inkName = `${rootName}_${count}`;
-            count++;
-        }
+            inkName = createIdentifierFromString(stitch.pageLabel, inklewriterStitchToInkNames);
 
         inklewriterStitchToInkNames[stitch.name] = inkName;
     }
@@ -384,6 +443,60 @@ export function convert(sourceJSON : inklewriterJSON) : string {
     inkLines.push(`# author: ${story.author}`);
     inkLines.push(`// -----------------------------`);
     inkLines.push(``);
+
+    // Flag names can have spaces, so we need to cover them all to proper identifiers
+    let flagNamesToVarNames : { [flagName:string]: string } = {};
+    let varNamesToFlagNames : { [varName:string]: string } = {};
+    let orderedVarNames : string[] = [];
+    let assumedDefaultByVarName : { [varName:string]: any } = {};
+    for(let s of story.orderedStitches) {
+        for(let flag of s.flagNames) {
+            
+            // Flag patterns:
+            //   - simple text
+            //   - flag name = 5
+            //   - flag name - 1
+            //   - flag name + 1
+            //   - flag name = false
+            let flagResult = parseFlag(flag);
+
+            let varName = flagNamesToVarNames[flagResult.flagName];
+            if( !varName ) {
+                varName = createIdentifierFromString(flagResult.flagName, varNamesToFlagNames);
+                flagNamesToVarNames[flagResult.flagName] = varName;
+                varNamesToFlagNames[varName] = flagResult.flagName;
+                orderedVarNames.push(varName);
+            }
+
+            let flagAssign = (flagResult as flagAssignment);
+            if( flagAssign.assign ) {
+                let currentDefault = assumedDefaultByVarName[varName];
+                if( currentDefault === undefined ) {
+                    if( typeof flagAssign.value === "number" ) {
+                        assumedDefaultByVarName[varName] = 0;
+                    } else if( typeof flagAssign.value === "boolean" ) {
+                        assumedDefaultByVarName[varName] = false;
+                    }
+                }
+            }
+
+            let flagMathOp = (flagResult as flagMathOp);
+            if( flagMathOp.mathOp ) {
+                let currentDefault = assumedDefaultByVarName[varName];
+                if( currentDefault === undefined ) {
+                    assumedDefaultByVarName[varName] = 0;
+                }
+            }
+        }
+    }
+    
+    // Variable declarations
+    for(let varName of orderedVarNames) {
+        let assumedDefault = assumedDefaultByVarName[varName];
+        if( assumedDefault === undefined ) assumedDefault = false;
+        inkLines.push(`VAR ${varName} = ${assumedDefault}`);
+    }
+
     inkLines.push(``);
     inkLines.push(`-> ${initialKnotName}`);
     inkLines.push(``);
