@@ -8,6 +8,7 @@ class Condition {
 }
 class Stitch {
     constructor(name, data, owner) {
+        this.name = name;
         this.textContent = [];
         this.choices = [];
         this.conditions = [];
@@ -20,6 +21,7 @@ class Stitch {
         this.pageLabel = null;
         this.distanceFromHeader = -1;
         this.header = null;
+        this.divertBackLinks = [];
         this.owner = owner;
         for (var c of data.content) {
             // Text content
@@ -74,6 +76,15 @@ class Stitch {
             func(choiceTarget);
         }
     }
+    get isHeader() {
+        return this.distanceFromHeader === 0;
+    }
+    get divertTarget() {
+        if (this.divert)
+            return this.owner.stitchesByName[this.divert];
+        else
+            return null;
+    }
 }
 class Story {
     constructor(json) {
@@ -91,7 +102,7 @@ class Story {
         }
         this.calculateSectionsAndOrdering();
     }
-    firstStitch() {
+    get firstStitch() {
         return this.stitchesByName[this.initialStitchName];
     }
     calculateSectionsAndOrdering() {
@@ -114,7 +125,7 @@ class Story {
             }
         }
         // First stitch is implicitly a header stitch
-        let first = this.firstStitch();
+        let first = this.firstStitch;
         originalHeaders = this.orderedStitches.filter(s => s.originalPageNum >= 0 || s === first);
         for (let originalHeader of originalHeaders) {
             originalHeader.distanceFromHeader = 0;
@@ -149,14 +160,56 @@ class Story {
                 header = stitch;
                 pageNum++;
             }
+            stitch.header = header;
             stitch.pageNum = pageNum;
         }
+        // Set up backlinks
+        for (let stitch of this.orderedStitches) {
+            var target = stitch.divertTarget;
+            if (target)
+                target.divertBackLinks.push(stitch);
+        }
     }
+}
+function createIdentifierFromString(str) {
+    let id = "";
+    for (let c of str) {
+        // Allow a-z etc
+        if (c >= '0' && c <= '9' || c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c == '_') {
+            id += c;
+        }
+        // Convert whitespace to single '_'
+        else if (c == ' ' || c == '\t') {
+            if (id.length > 0 && id[id.length - 1] != "_")
+                id += "_";
+        }
+        // skip everything else
+    }
+    if (id.length > 0 && id[id.length - 1] == "_") {
+        id = id.substr(0, id.length - 1);
+    }
+    return id;
 }
 let inkLines;
 function convert(sourceJSON) {
     var story = new Story(sourceJSON);
     inkLines = [];
+    // Create ink-specific stitch/knot name mappings out of the inklewriter content
+    let inklewriterStitchToInkNames = {};
+    for (let stitch of story.orderedStitches) {
+        let inkName = stitch.name;
+        if (stitch.isHeader && stitch.pageLabel)
+            inkName = createIdentifierFromString(stitch.pageLabel);
+        // Avoid naming collisions
+        let rootName = inkName;
+        let count = 2;
+        while (inklewriterStitchToInkNames[inkName]) {
+            inkName = `${rootName}_${count}`;
+            count++;
+        }
+        inklewriterStitchToInkNames[stitch.name] = inkName;
+    }
+    let initialKnotName = inklewriterStitchToInkNames[story.initialStitchName];
     inkLines.push(`// ---- ${sourceJSON.title} ----`);
     inkLines.push(`// Converted from original URL:`);
     inkLines.push(`// http://writer.inklestudios.com/stories/${sourceJSON.url_key}`);
@@ -165,23 +218,65 @@ function convert(sourceJSON) {
     inkLines.push(`// -----------------------------`);
     inkLines.push(``);
     inkLines.push(``);
-    inkLines.push(`-> ${story.initialStitchName}`);
+    inkLines.push(`-> ${initialKnotName}`);
     inkLines.push(``);
-    let all = "";
-    for (let stitch of story.orderedStitches) {
-        if (stitch.pageLabel) {
-            all += `==== ${stitch.pageLabel} ====\n`;
+    for (let stitchIdx = 0; stitchIdx < story.orderedStitches.length; stitchIdx++) {
+        let stitch = story.orderedStitches[stitchIdx];
+        if (stitch.isHeader) {
+            var knotName = inklewriterStitchToInkNames[stitch.name];
+            inkLines.push(`\n==== ${knotName} ====`);
         }
-        if (stitch.pageNum)
-            all += `${stitch.pageNum}: `;
-        if (stitch.originalPageNum !== undefined)
-            all += `(${stitch.originalPageNum})`;
-        all += stitch.textContent + "\n";
+        // Do we need to label this stitch?
+        else {
+            let prevStitch = stitchIdx > 0 ? story.orderedStitches[stitchIdx - 1] : null;
+            var directlyFollowsOn = stitch.divertBackLinks.length === 1 && stitch.divertBackLinks[0] === prevStitch;
+            if (!directlyFollowsOn) {
+                inkLines.push(`\n= ${inklewriterStitchToInkNames[stitch.name]}`);
+            }
+        }
+        // Main text content for stitch
+        // Think there's actually only ever one line...?
+        for (let lineIdx = 0; lineIdx < stitch.textContent.length; lineIdx++) {
+            let line = stitch.textContent[lineIdx];
+            // runOn (inklewriter elipsis) == ink-style glue
+            let isLastLine = lineIdx === stitch.textContent.length - 1;
+            if (isLastLine && stitch.runOn)
+                line += " <>";
+            inkLines.push(line);
+        }
+        function resolveDivertTargetStr(targetPath, relativeStitch) {
+            let targetStitch = story.stitchesByName[targetPath];
+            let targetName = inklewriterStitchToInkNames[targetStitch.name];
+            if (!targetStitch.isHeader && targetStitch.header !== relativeStitch.header) {
+                let targetHeaderName = inklewriterStitchToInkNames[targetStitch.header.name];
+                targetName = `${targetHeaderName}.${targetName}`;
+            }
+            return targetName;
+        }
+        if (stitch.choices.length > 0 && stitch.divert)
+            throw new Error("Got both choices AND a divert? Shouldn't be possible?");
+        // Link up choices
+        for (let choice of stitch.choices) {
+            let targetName = resolveDivertTargetStr(choice.linkPath, stitch);
+            inkLines.push(`+ ${choice.option} -> ${targetName}`);
+        }
+        // Divert, assumed to be mutually exclusive v.s. choices
+        if (stitch.divert) {
+            let nextStitch = stitchIdx < story.orderedStitches.length - 1 ? story.orderedStitches[stitchIdx + 1] : null;
+            let divertTargetFollowsOnDirectly = stitch.divertTarget === nextStitch && nextStitch && nextStitch.divertBackLinks.length === 1;
+            if (!divertTargetFollowsOnDirectly) {
+                let targetName = resolveDivertTargetStr(stitch.divert, stitch);
+                inkLines.push(`    -> ${targetName}`);
+            }
+        }
+        // Assume all loose ends are complete, or not?
+        if (!stitch.divert && stitch.choices.length === 0) {
+            inkLines.push(`    -> END`);
+        }
     }
-    console.log(all);
-    return all;
-    //var content = firstStitch.content[0];
-    return inkLines.join("\n");
+    let finalInk = inkLines.join("\n");
+    console.log(finalInk);
+    return finalInk;
 }
 exports.convert = convert;
 //# sourceMappingURL=inklewriter-convert.js.map
