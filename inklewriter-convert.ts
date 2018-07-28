@@ -1,5 +1,3 @@
-import { ExecFileOptionsWithStringEncoding } from "child_process";
-import { SIGUSR1 } from "constants";
 
 interface ChoiceData {
     linkPath: string,
@@ -603,6 +601,9 @@ export function convert(sourceJSON : InklewriterJSON) : string {
             if( isLastLine && stitch.runOn )
                 line += " <>";
 
+            // old style runOn that has't be upgraded
+            line = line.replace("[...]", "<>");
+
             if( isConditional )
                 line = "    " + line;
             
@@ -666,9 +667,7 @@ export function convert(sourceJSON : InklewriterJSON) : string {
         }
     }
 
-    let finalInk = inkLines.join("\n");
-    console.log(finalInk);
-
-    return finalInk;
+    // Final ink
+    return inkLines.join("\n");
 }
 

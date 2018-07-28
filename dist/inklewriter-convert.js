@@ -388,6 +388,8 @@ function convert(sourceJSON) {
             let isLastLine = lineIdx === stitch.textContent.length - 1;
             if (isLastLine && stitch.runOn)
                 line += " <>";
+            // old style runOn that has't be upgraded
+            line = line.replace("[...]", "<>");
             if (isConditional)
                 line = "    " + line;
             inkLines.push(line);
@@ -440,9 +442,8 @@ function convert(sourceJSON) {
             inkLines.push(`    -> END`);
         }
     }
-    let finalInk = inkLines.join("\n");
-    console.log(finalInk);
-    return finalInk;
+    // Final ink
+    return inkLines.join("\n");
 }
 exports.convert = convert;
 //# sourceMappingURL=inklewriter-convert.js.map
