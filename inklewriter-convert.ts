@@ -453,7 +453,7 @@ export function convert(sourceJSON : InklewriterJSON) : string {
     let initialKnotName = inklewriterStitchToInkNames[story.initialStitchName];
 
     inkLines.push(`// ---- ${sourceJSON.title} ----`);
-    inkLines.push(`// Converted from original URL:`);
+    inkLines.push(`// Converted from original inklewriter URL:`);
     inkLines.push(`// http://writer.inklestudios.com/stories/${sourceJSON.url_key}`);
     inkLines.push(`# title: ${story.title}`);
     inkLines.push(`# author: ${story.author}`);
