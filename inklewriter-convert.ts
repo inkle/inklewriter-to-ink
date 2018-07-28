@@ -1,60 +1,60 @@
 import { ExecFileOptionsWithStringEncoding } from "child_process";
 import { SIGUSR1 } from "constants";
 
-interface choiceData {
+interface ChoiceData {
     linkPath: string,
-    ifConditions: ifConditionData[] | null,
+    ifConditions: IfConditionData[] | null,
     option: string,
-    notIfConditions: notIfConditionData[] | null
+    notIfConditions: NotIfConditionData[] | null
 }
 
-interface notIfConditionData {
+interface NotIfConditionData {
     notIfCondition: string
 }
 
-interface ifConditionData {
+interface IfConditionData {
     ifCondition: string
 }
 
-interface pageNumData {
+interface PageNumData {
     pageNum: number
 }
 
-interface pageLabelData {
+interface PageLabelData {
     pageLabel: string
 }
 
-interface stitchData {
+interface StitchData {
     content: contentData[]
 }
 
-interface divertData {
+interface DivertData {
     divert: string
 }
 
 // Equivalent to ink glue
-interface runOnData {
+interface RunOnData {
     runOn: true
 }
 
-interface flagData {
+interface FlagData {
     flagName: string
 }
 
-interface imageData {
+interface ImageData {
     image: string
 }
 
-type contentData = string | choiceData | notIfConditionData | ifConditionData | divertData | runOnData | flagData | pageNumData | pageLabelData | imageData;
+type contentData = string | ChoiceData | NotIfConditionData | IfConditionData | DivertData | RunOnData | FlagData | PageNumData | PageLabelData | ImageData;
 
 
 
-interface inklewriterData {
+interface InklewriterData {
     allowCheckpoints : boolean,
     optionMirroring : boolean,
     initial : string,
     stitches : {
-        [name:string]: stitchData
+        [name:string]: StitchData
     },
     editorData: {
         playPoint: string,
@@ -64,9 +64,9 @@ interface inklewriterData {
     }
 }
 
-interface inklewriterJSON {
+interface InklewriterJSON {
     title : string,
-    data : inklewriterData,
+    data : InklewriterData,
     created_at: string, // date
     url_key: string,
     updated_at: string // date
@@ -124,7 +124,7 @@ class Flag {
 }
 
 class Stitch {
-    constructor(name : string, data : stitchData, owner : Story) {
+    constructor(name : string, data : StitchData, owner : Story) {
         this.name = name;
 
         this.textContent = [];
@@ -154,48 +154,48 @@ class Stitch {
             }
 
             // Choice
-            else if( (c as choiceData).option !== undefined ) {
-                this.choices.push(c as choiceData);
+            else if( (c as ChoiceData).option !== undefined ) {
+                this.choices.push(c as ChoiceData);
             }
 
             // Page num
-            else if( (c as pageNumData).pageNum !== undefined ) {
-                this.pageNum = this.originalPageNum = (c as pageNumData).pageNum;
+            else if( (c as PageNumData).pageNum !== undefined ) {
+                this.pageNum = this.originalPageNum = (c as PageNumData).pageNum;
             }
 
             // Page label
-            else if( (c as pageLabelData).pageLabel !== undefined ) {
-                this.pageLabel = (c as pageLabelData).pageLabel;
+            else if( (c as PageLabelData).pageLabel !== undefined ) {
+                this.pageLabel = (c as PageLabelData).pageLabel;
             }
 
             // ifCondition
-            else if( (c as ifConditionData).ifCondition !== undefined ) {
-                this.conditions.push(new Condition((c as ifConditionData).ifCondition, false));
+            else if( (c as IfConditionData).ifCondition !== undefined ) {
+                this.conditions.push(new Condition((c as IfConditionData).ifCondition, false));
             }
 
             // notIfCondition
-            else if( (c as notIfConditionData).notIfCondition !== undefined ) {
-                this.conditions.push(new Condition((c as notIfConditionData).notIfCondition, true));
+            else if( (c as NotIfConditionData).notIfCondition !== undefined ) {
+                this.conditions.push(new Condition((c as NotIfConditionData).notIfCondition, true));
             }
 
             // divert
-            else if( (c as divertData).divert !== undefined ) {
-                this.divert = (c as divertData).divert;
+            else if( (c as DivertData).divert !== undefined ) {
+                this.divert = (c as DivertData).divert;
             }
 
             // runOn
-            else if( (c as runOnData).runOn !== undefined ) {
+            else if( (c as RunOnData).runOn !== undefined ) {
                 this.runOn = true;
             }
 
             // flag
-            else if( (c as flagData).flagName !== undefined ) {
-                this.flags.push(new Flag((c as flagData).flagName));
+            else if( (c as FlagData).flagName !== undefined ) {
+                this.flags.push(new Flag((c as FlagData).flagName));
             }
 
             // image
-            else if( (c as imageData).image !== undefined ) {
-                this.image = (c as imageData).image;
+            else if( (c as ImageData).image !== undefined ) {
+                this.image = (c as ImageData).image;
             }
         }
     }
@@ -225,7 +225,7 @@ class Stitch {
 
     name : string;
     textContent : string[]
-    choices : choiceData[]
+    choices : ChoiceData[]
     pageNum : number
     originalPageNum : number
     header : Stitch | null
@@ -252,8 +252,8 @@ class Story {
     stitchesByName : { [name: string]: Stitch }
     orderedStitches : Stitch[];
 
-    constructor(json : inklewriterJSON) {
-        let data = json.data as inklewriterData;
+    constructor(json : InklewriterJSON) {
+        let data = json.data as InklewriterData;
 
         this.title = json.title;
         this.author = data.editorData.authorName;
@@ -397,7 +397,7 @@ function createIdentifierFromString(str : string, collisionDictionary : {[existi
 
 let inkLines : string[];
 
-export function convert(sourceJSON : inklewriterJSON) : string {
+export function convert(sourceJSON : InklewriterJSON) : string {
     
     var story = new Story(sourceJSON);
 
