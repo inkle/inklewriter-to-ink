@@ -327,11 +327,25 @@ function convert(sourceJSON) {
                 inkLines.push(` - (${inklewriterStitchToInkNames[stitch.name]})`);
             }
         }
+        // Content is conditional?
+        let isConditional = stitch.conditions.length > 0;
+        if (isConditional) {
+            let conditionsTexts = stitch.conditions.map(cond => {
+                let condTxt = cond.condition;
+                condTxt = replaceFlagNamesWithVarNames(condTxt);
+                if (cond.isNot)
+                    condTxt = "not " + condTxt;
+                return condTxt;
+            });
+            let conditionsStr = conditionsTexts.join(" and ");
+            inkLines.push(`{ ${conditionsStr}:`);
+        }
         // Flags
         // TODO: Does assignment come before or after text?
         for (let flag of stitch.flags) {
             let exprWithVars = replaceFlagNamesWithVarNames(flag.assignedExpression);
-            inkLines.push(` ~ ${flagNamesToVarNames[flag.flagName]} = ${exprWithVars}`);
+            let conditionalIndent = isConditional ? "    " : " ";
+            inkLines.push(`${conditionalIndent} ~ ${flagNamesToVarNames[flag.flagName]} = ${exprWithVars}`);
         }
         // Main text content for stitch
         // Think there's actually only ever one line...?
@@ -367,8 +381,12 @@ function convert(sourceJSON) {
             let isLastLine = lineIdx === stitch.textContent.length - 1;
             if (isLastLine && stitch.runOn)
                 line += " <>";
+            if (isConditional)
+                line = "    " + line;
             inkLines.push(line);
         }
+        if (isConditional)
+            inkLines.push("}");
         function resolveDivertTargetStr(targetPath, relativeStitch) {
             let targetStitch = story.stitchesByName[targetPath];
             let targetName = inklewriterStitchToInkNames[targetStitch.name];

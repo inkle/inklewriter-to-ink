@@ -524,11 +524,27 @@ export function convert(sourceJSON : InklewriterJSON) : string {
             }
         }
 
+
+        // Content is conditional?
+        let isConditional = stitch.conditions.length > 0;
+        if( isConditional ) {
+            let conditionsTexts = stitch.conditions.map(cond => {
+                let condTxt = cond.condition;
+                condTxt = replaceFlagNamesWithVarNames(condTxt);
+                if( cond.isNot )
+                    condTxt = "not "+condTxt;
+                return condTxt;
+            });
+            let conditionsStr = conditionsTexts.join(" and ");
+            inkLines.push(`{ ${conditionsStr}:`);
+        }
+
         // Flags
         // TODO: Does assignment come before or after text?
         for(let flag of stitch.flags) {
             let exprWithVars = replaceFlagNamesWithVarNames(flag.assignedExpression);
-            inkLines.push(` ~ ${flagNamesToVarNames[flag.flagName]} = ${exprWithVars}`);
+            let conditionalIndent = isConditional ? "    " : " ";
+            inkLines.push(`${conditionalIndent} ~ ${flagNamesToVarNames[flag.flagName]} = ${exprWithVars}`);
         }
 
         // Main text content for stitch
@@ -575,9 +591,15 @@ export function convert(sourceJSON : InklewriterJSON) : string {
             let isLastLine = lineIdx === stitch.textContent.length-1;
             if( isLastLine && stitch.runOn )
                 line += " <>";
+
+            if( isConditional )
+                line = "    " + line;
             
             inkLines.push(line);
         }
+
+        if( isConditional )
+            inkLines.push("}");
 
         function resolveDivertTargetStr(targetPath : string, relativeStitch : Stitch) : string {
             let targetStitch = story.stitchesByName[targetPath];
