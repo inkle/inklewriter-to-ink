@@ -488,12 +488,18 @@ export function convert(sourceJSON : InklewriterJSON) : string {
         inkLines.push(`VAR ${varName} = ${assumedDefault}`);
     }
 
-    function replaceFlagNamesWithVarNames(logicStr : string) : string {
+    function replaceFlagNamesAndUpdateLogic(logicStr : string) : string {
         if( logicStr != null && logicStr.length > 0 ) {
+
+            // Replace flag names with VAR names
             for(let flagName in flagNamesToVarNames) {
                 let varName = flagNamesToVarNames[flagName];
                 logicStr = logicStr.replace(flagName, varName);
             }
+
+            // Replace single "=" with double "=="
+            // (but not >= or <=!)
+            logicStr = logicStr.replace(/([^><])(=)/, "$1==");
         }
         return logicStr;
     }
@@ -531,7 +537,7 @@ export function convert(sourceJSON : InklewriterJSON) : string {
         if( isConditional ) {
             let conditionsTexts = stitch.conditions.map(cond => {
                 let condTxt = cond.condition;
-                condTxt = replaceFlagNamesWithVarNames(condTxt);
+                condTxt = replaceFlagNamesAndUpdateLogic(condTxt);
                 if( cond.isNot )
                     condTxt = "not "+condTxt;
                 return condTxt;
@@ -543,9 +549,15 @@ export function convert(sourceJSON : InklewriterJSON) : string {
         // Flags
         // TODO: Does assignment come before or after text?
         for(let flag of stitch.flags) {
-            let exprWithVars = replaceFlagNamesWithVarNames(flag.assignedExpression);
+            let exprWithVars = replaceFlagNamesAndUpdateLogic(flag.assignedExpression);
             let conditionalIndent = isConditional ? "    " : " ";
             inkLines.push(`${conditionalIndent} ~ ${flagNamesToVarNames[flag.flagName]} = ${exprWithVars}`);
+        }
+
+        // Image
+        if( stitch.image ) {
+            // New-inky-specific template tag, but could be usable in other environments
+            inkLines.push(`# IMAGE: ${stitch.image}`);
         }
 
         // Main text content for stitch
@@ -565,10 +577,7 @@ export function convert(sourceJSON : InklewriterJSON) : string {
                     let logicTxt = line.substr(logicPos, logicEndPos-logicPos);
 
                     // Replace flag names with VAR names
-                    let updatedLogicTxt = replaceFlagNamesWithVarNames(logicTxt);
-
-                    // Replace single "=" with double
-                    updatedLogicTxt = updatedLogicTxt.replace("=", "==");
+                    let updatedLogicTxt = replaceFlagNamesAndUpdateLogic(logicTxt);
 
                     let txtBefore = line.substr(0, logicPos);
                     let txtAfter = line.substr(logicEndPos);
@@ -632,7 +641,7 @@ export function convert(sourceJSON : InklewriterJSON) : string {
 
             let conditionsTexts = choice.conditions.map(cond => {
                 let condTxt = cond.condition;
-                condTxt = replaceFlagNamesWithVarNames(condTxt);
+                condTxt = replaceFlagNamesAndUpdateLogic(condTxt);
                 if( cond.isNot )
                     condTxt = "not "+condTxt;
                 return `{${condTxt}} `;

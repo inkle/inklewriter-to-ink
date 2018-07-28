@@ -298,12 +298,16 @@ function convert(sourceJSON) {
             assumedDefault = false;
         inkLines.push(`VAR ${varName} = ${assumedDefault}`);
     }
-    function replaceFlagNamesWithVarNames(logicStr) {
+    function replaceFlagNamesAndUpdateLogic(logicStr) {
         if (logicStr != null && logicStr.length > 0) {
+            // Replace flag names with VAR names
             for (let flagName in flagNamesToVarNames) {
                 let varName = flagNamesToVarNames[flagName];
                 logicStr = logicStr.replace(flagName, varName);
             }
+            // Replace single "=" with double "=="
+            // (but not >= or <=!)
+            logicStr = logicStr.replace(/([^><])(=)/, "$1==");
         }
         return logicStr;
     }
@@ -333,7 +337,7 @@ function convert(sourceJSON) {
         if (isConditional) {
             let conditionsTexts = stitch.conditions.map(cond => {
                 let condTxt = cond.condition;
-                condTxt = replaceFlagNamesWithVarNames(condTxt);
+                condTxt = replaceFlagNamesAndUpdateLogic(condTxt);
                 if (cond.isNot)
                     condTxt = "not " + condTxt;
                 return condTxt;
@@ -344,9 +348,14 @@ function convert(sourceJSON) {
         // Flags
         // TODO: Does assignment come before or after text?
         for (let flag of stitch.flags) {
-            let exprWithVars = replaceFlagNamesWithVarNames(flag.assignedExpression);
+            let exprWithVars = replaceFlagNamesAndUpdateLogic(flag.assignedExpression);
             let conditionalIndent = isConditional ? "    " : " ";
             inkLines.push(`${conditionalIndent} ~ ${flagNamesToVarNames[flag.flagName]} = ${exprWithVars}`);
+        }
+        // Image
+        if (stitch.image) {
+            // New-inky-specific template tag, but could be usable in other environments
+            inkLines.push(`# IMAGE: ${stitch.image}`);
         }
         // Main text content for stitch
         // Think there's actually only ever one line...?
@@ -362,9 +371,7 @@ function convert(sourceJSON) {
                     let logicEndPos = line.indexOf(":", logicPos);
                     let logicTxt = line.substr(logicPos, logicEndPos - logicPos);
                     // Replace flag names with VAR names
-                    let updatedLogicTxt = replaceFlagNamesWithVarNames(logicTxt);
-                    // Replace single "=" with double
-                    updatedLogicTxt = updatedLogicTxt.replace("=", "==");
+                    let updatedLogicTxt = replaceFlagNamesAndUpdateLogic(logicTxt);
                     let txtBefore = line.substr(0, logicPos);
                     let txtAfter = line.substr(logicEndPos);
                     line = txtBefore + updatedLogicTxt + txtAfter;
@@ -412,7 +419,7 @@ function convert(sourceJSON) {
             let targetName = resolveDivertTargetStr(choice.linkPath, stitch);
             let conditionsTexts = choice.conditions.map(cond => {
                 let condTxt = cond.condition;
-                condTxt = replaceFlagNamesWithVarNames(condTxt);
+                condTxt = replaceFlagNamesAndUpdateLogic(condTxt);
                 if (cond.isNot)
                     condTxt = "not " + condTxt;
                 return `{${condTxt}} `;
