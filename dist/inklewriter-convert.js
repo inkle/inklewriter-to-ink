@@ -6,6 +6,23 @@ class Condition {
         this.isNot = isNot;
     }
 }
+class Choice {
+    constructor(data) {
+        this.text = data.option;
+        this.linkPath = data.linkPath;
+        this.conditions = [];
+        if (data.ifConditions) {
+            for (let ifC of data.ifConditions) {
+                this.conditions.push(new Condition(ifC.ifCondition, false));
+            }
+        }
+        if (data.notIfConditions) {
+            for (let notIfC of data.notIfConditions) {
+                this.conditions.push(new Condition(notIfC.notIfCondition, true));
+            }
+        }
+    }
+}
 class Flag {
     constructor(flagText) {
         var assignPos = flagText.indexOf("=");
@@ -61,7 +78,7 @@ class Stitch {
             }
             // Choice
             else if (c.option !== undefined) {
-                this.choices.push(c);
+                this.choices.push(new Choice(c));
             }
             // Page num
             else if (c.pageNum !== undefined) {
@@ -366,7 +383,15 @@ function convert(sourceJSON) {
         // Link up choices
         for (let choice of stitch.choices) {
             let targetName = resolveDivertTargetStr(choice.linkPath, stitch);
-            inkLines.push(`+ ${choice.option} -> ${targetName}`);
+            let conditionsTexts = choice.conditions.map(cond => {
+                let condTxt = cond.condition;
+                condTxt = replaceFlagNamesWithVarNames(condTxt);
+                if (cond.isNot)
+                    condTxt = "not " + condTxt;
+                return `{${condTxt}} `;
+            });
+            let conditionsStr = conditionsTexts.join("");
+            inkLines.push(`  + ${conditionsStr}${choice.text} -> ${targetName}`);
         }
         // Divert, assumed to be mutually exclusive v.s. choices
         if (stitch.divert) {

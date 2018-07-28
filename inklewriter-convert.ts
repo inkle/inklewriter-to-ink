@@ -83,6 +83,30 @@ class Condition {
     isNot : boolean
 }
 
+class Choice {
+    text : string
+    linkPath : string
+    conditions : Condition[]
+
+    constructor(data : ChoiceData) {
+        this.text = data.option;
+        this.linkPath = data.linkPath;
+        this.conditions = [];
+
+        if( data.ifConditions ) {
+            for(let ifC of data.ifConditions) {
+                this.conditions.push(new Condition(ifC.ifCondition, false));
+            }
+        }
+
+        if( data.notIfConditions ) {
+            for(let notIfC of data.notIfConditions) {
+                this.conditions.push(new Condition(notIfC.notIfCondition, true));
+            }
+        }
+    }
+}
+
 class Flag {
 
     flagName : string;
@@ -156,7 +180,7 @@ class Stitch {
 
             // Choice
             else if( (c as ChoiceData).option !== undefined ) {
-                this.choices.push(c as ChoiceData);
+                this.choices.push(new Choice(c as ChoiceData));
             }
 
             // Page num
@@ -226,7 +250,7 @@ class Stitch {
 
     name : string;
     textContent : string[]
-    choices : ChoiceData[]
+    choices : Choice[]
     pageNum : number
     originalPageNum : number
     header : Stitch | null
@@ -571,7 +595,17 @@ export function convert(sourceJSON : InklewriterJSON) : string {
         // Link up choices
         for(let choice of stitch.choices) {
             let targetName = resolveDivertTargetStr(choice.linkPath, stitch);
-            inkLines.push(`+ ${choice.option} -> ${targetName}`);
+
+            let conditionsTexts = choice.conditions.map(cond => {
+                let condTxt = cond.condition;
+                condTxt = replaceFlagNamesWithVarNames(condTxt);
+                if( cond.isNot )
+                    condTxt = "not "+condTxt;
+                return `{${condTxt}} `;
+            });
+            let conditionsStr = conditionsTexts.join("");
+
+            inkLines.push(`  + ${conditionsStr}${choice.text} -> ${targetName}`);
         }
 
         // Divert, assumed to be mutually exclusive v.s. choices
