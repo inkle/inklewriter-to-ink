@@ -6,6 +6,36 @@ class Condition {
         this.isNot = isNot;
     }
 }
+class Flag {
+    constructor(flagText) {
+        var assignPos = flagText.indexOf("=");
+        var mathOpPos = flagText.search(/(\+|-|\*|\/)/);
+        // Explicit assignment
+        // e.g. "myFlag = 5"
+        if (assignPos !== -1) {
+            this.flagName = flagText.substr(0, assignPos).trim();
+            this.assignedExpression = flagText.substr(assignPos + 1).trim();
+            if (this.assignedExpression === "true" || this.assignedExpression === "false")
+                this.defaultValue = false;
+            else
+                this.defaultValue = 0;
+        }
+        // Mathematical expression. Assume flag name comes first.
+        // e.g. "myFlag + 1"
+        else if (mathOpPos !== -1) {
+            this.flagName = flagText.substr(0, mathOpPos).trim();
+            this.assignedExpression = flagText.trim();
+            this.defaultValue = 0;
+        }
+        // Simple flag set to true expression
+        // e.g. "myFlag"
+        else {
+            this.flagName = flagText.trim();
+            this.assignedExpression = "true";
+            this.defaultValue = false;
+        }
+    }
+}
 class Stitch {
     constructor(name, data, owner) {
         this.name = name;
@@ -14,7 +44,7 @@ class Stitch {
         this.conditions = [];
         this.divert = null;
         this.runOn = false;
-        this.flagNames = [];
+        this.flags = [];
         this.image = null;
         this.pageNum = -1;
         this.originalPageNum = -1;
@@ -58,7 +88,7 @@ class Stitch {
             }
             // flag
             else if (c.flagName !== undefined) {
-                this.flagNames.push(c.flagName);
+                this.flags.push(new Flag(c.flagName));
             }
             // image
             else if (c.image !== undefined) {
@@ -197,40 +227,6 @@ function createIdentifierFromString(str, collisionDictionary) {
     }
     return id;
 }
-function parseFlag(flagText) {
-    let result = {};
-    // Assignment
-    var assignPos = flagText.indexOf("=");
-    if (assignPos !== -1) {
-        result.flagName = flagText.substr(0, assignPos).trim();
-        result.assign = true;
-        let valueTxt = flagText.substr(assignPos + 1).trim();
-        if (valueTxt === "true")
-            result.value = true;
-        else if (valueTxt === "false")
-            result.value = false;
-        else {
-            result.value = parseInt(valueTxt);
-        }
-    }
-    // Inc/dec
-    var mathOpPos = flagText.search(/(\+|-|\*|\/)/);
-    if (!result.assign && mathOpPos !== -1) {
-        let op = flagText[mathOpPos];
-        result.flagName = flagText.substr(0, mathOpPos).trim();
-        result.flagName = flagText.substr(0, mathOpPos).trim();
-        let valueTxt = flagText.substr(assignPos + 1).trim();
-        result.op = op;
-        result.value = parseInt(valueTxt);
-        result.mathOp = true;
-    }
-    // Simple flag decl
-    if (!result.assign && !result.mathOp) {
-        result.simpleDecl = true;
-        result.flagName = flagText.trim();
-    }
-    return result;
-}
 let inkLines;
 function convert(sourceJSON) {
     var story = new Story(sourceJSON);
@@ -255,47 +251,23 @@ function convert(sourceJSON) {
     let flagNamesToVarNames = {};
     let varNamesToFlagNames = {};
     let orderedVarNames = [];
-    let assumedDefaultByVarName = {};
+    let defaultValuesByVarName = {};
     for (let s of story.orderedStitches) {
-        for (let flag of s.flagNames) {
-            // Flag patterns:
-            //   - simple text
-            //   - flag name = 5
-            //   - flag name - 1
-            //   - flag name + 1
-            //   - flag name = false
-            let flagResult = parseFlag(flag);
-            let varName = flagNamesToVarNames[flagResult.flagName];
+        for (let flag of s.flags) {
+            let varName = flagNamesToVarNames[flag.flagName];
             if (!varName) {
-                varName = createIdentifierFromString(flagResult.flagName, varNamesToFlagNames);
-                flagNamesToVarNames[flagResult.flagName] = varName;
-                varNamesToFlagNames[varName] = flagResult.flagName;
+                varName = createIdentifierFromString(flag.flagName, varNamesToFlagNames);
+                flagNamesToVarNames[flag.flagName] = varName;
+                varNamesToFlagNames[varName] = flag.flagName;
                 orderedVarNames.push(varName);
             }
-            let flagAssign = flagResult;
-            if (flagAssign.assign) {
-                let currentDefault = assumedDefaultByVarName[varName];
-                if (currentDefault === undefined) {
-                    if (typeof flagAssign.value === "number") {
-                        assumedDefaultByVarName[varName] = 0;
-                    }
-                    else if (typeof flagAssign.value === "boolean") {
-                        assumedDefaultByVarName[varName] = false;
-                    }
-                }
-            }
-            let flagMathOp = flagResult;
-            if (flagMathOp.mathOp) {
-                let currentDefault = assumedDefaultByVarName[varName];
-                if (currentDefault === undefined) {
-                    assumedDefaultByVarName[varName] = 0;
-                }
-            }
+            if (defaultValuesByVarName[varName] === undefined)
+                defaultValuesByVarName[varName] = flag.defaultValue;
         }
     }
     // Variable declarations
     for (let varName of orderedVarNames) {
-        let assumedDefault = assumedDefaultByVarName[varName];
+        let assumedDefault = defaultValuesByVarName[varName];
         if (assumedDefault === undefined)
             assumedDefault = false;
         inkLines.push(`VAR ${varName} = ${assumedDefault}`);
