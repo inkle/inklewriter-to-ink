@@ -272,6 +272,7 @@ class Story {
 
     title : string
     author : string
+    optionMirroring : boolean
 
     initialStitchName : string
 
@@ -283,6 +284,8 @@ class Story {
 
         this.title = json.title;
         this.author = data.editorData.authorName;
+        this.optionMirroring = data.optionMirroring;
+
         this.initialStitchName = data.initial;
 
         this.stitchesByName = {};
@@ -586,6 +589,14 @@ export function convert(sourceJSON : InklewriterJSON) : string {
                 }
 
             } while(nextSearchPos !== -1);
+
+            // Italics
+            line = line.replace("/=", "<em>");
+            line = line.replace("=/", "</em>")
+
+            // Bold
+            line = line.replace("*-", "<strong>");
+            line = line.replace("-*", "</strong>");
             
             // runOn (inklewriter elipsis) == ink-style glue
             let isLastLine = lineIdx === stitch.textContent.length-1;
@@ -627,7 +638,16 @@ export function convert(sourceJSON : InklewriterJSON) : string {
             });
             let conditionsStr = conditionsTexts.join("");
 
-            inkLines.push(`  + ${conditionsStr}${choice.text} -> ${targetName}`);
+            // When options are mirrored it has to be a bit uglier to enforce the newline after the mirrored text
+            if( story.optionMirroring ) {
+                inkLines.push(`  + ${conditionsStr}${choice.text}`);
+                inkLines.push(`        -> ${targetName} `);
+            }
+            
+            // When options aren't mirrored we can include the divert on the same line.
+            else {
+                inkLines.push(`  + ${conditionsStr}[${choice.text}] -> ${targetName}`);
+            }
         }
 
         // Divert, assumed to be mutually exclusive v.s. choices
