@@ -143,6 +143,7 @@ class Stitch {
         this.header = null;
 
         this.divertBackLinks = [];
+        this.choiceBackLinks = [];
 
         this.owner = owner;
 
@@ -238,6 +239,7 @@ class Stitch {
     image : string | null
 
     divertBackLinks : Stitch[]
+    choiceBackLinks : Stitch[]
 
     owner : Story
 }
@@ -359,6 +361,12 @@ class Story {
             var target = stitch.divertTarget;
             if( target )
                 target.divertBackLinks.push(stitch);
+
+            for(let choice of stitch.choices) {
+                let choiceTarget = this.stitchesByName[choice.linkPath];
+                if( choiceTarget )
+                    choiceTarget.choiceBackLinks.push(stitch);
+            }
         }
     }
 }
@@ -405,13 +413,15 @@ export function convert(sourceJSON : InklewriterJSON) : string {
 
     // Create ink-specific stitch/knot name mappings out of the inklewriter content
     let inklewriterStitchToInkNames : { [inklewriterName:string]: string} = {};
+    let inkNamesUsage : { [inkName:string]: true } = {};
     for(let stitch of story.orderedStitches) {
 
         let inkName = stitch.name;
 
         if( stitch.isHeader && stitch.pageLabel )
-            inkName = createIdentifierFromString(stitch.pageLabel, inklewriterStitchToInkNames);
+            inkName = createIdentifierFromString(stitch.pageLabel, inkNamesUsage);
 
+        inkNamesUsage[inkName] = true;
         inklewriterStitchToInkNames[stitch.name] = inkName;
     }
 
@@ -453,6 +463,16 @@ export function convert(sourceJSON : InklewriterJSON) : string {
         inkLines.push(`VAR ${varName} = ${assumedDefault}`);
     }
 
+    function replaceFlagNamesWithVarNames(logicStr : string) : string {
+        if( logicStr != null && logicStr.length > 0 ) {
+            for(let flagName in flagNamesToVarNames) {
+                let varName = flagNamesToVarNames[flagName];
+                logicStr = logicStr.replace(flagName, varName);
+            }
+        }
+        return logicStr;
+    }
+
     inkLines.push(``);
     inkLines.push(`-> ${initialKnotName}`);
     inkLines.push(``);
@@ -473,12 +493,59 @@ export function convert(sourceJSON : InklewriterJSON) : string {
             if( !directlyFollowsOn ) {
                 inkLines.push(`\n= ${inklewriterStitchToInkNames[stitch.name]}`);
             }
+
+            // Follows directly on but it's also referenced elsewhere, so let's use a weave gather point
+            else if( stitch.choiceBackLinks.length > 0 ) {
+                inkLines.push(` - (${inklewriterStitchToInkNames[stitch.name]})`);
+            }
+        }
+
+        // Flags
+        // TODO: Does assignment come before or after text?
+        for(let flag of stitch.flags) {
+            let exprWithVars = replaceFlagNamesWithVarNames(flag.assignedExpression);
+            inkLines.push(` ~ ${flagNamesToVarNames[flag.flagName]} = ${exprWithVars}`);
         }
 
         // Main text content for stitch
         // Think there's actually only ever one line...?
         for(let lineIdx=0; lineIdx<stitch.textContent.length; lineIdx++) {
             let line = stitch.textContent[lineIdx];
+
+            // Update any inline logic
+            //  - Flag names to VAR names
+            //  - logic tweaks - e.g. "=" to "=="
+            let nextSearchPos = 0;
+            do {
+                let logicPos = line.indexOf("{", nextSearchPos);
+                if( logicPos > -1 ) {
+                    let logicEndPos = line.indexOf(":", logicPos);
+                    
+                    let logicTxt = line.substr(logicPos, logicEndPos-logicPos);
+
+                    // Replace flag names with VAR names
+                    let updatedLogicTxt = replaceFlagNamesWithVarNames(logicTxt);
+
+                    // Replace single "=" with double
+                    updatedLogicTxt = updatedLogicTxt.replace("=", "==");
+
+                    let txtBefore = line.substr(0, logicPos);
+                    let txtAfter = line.substr(logicEndPos);
+                    line = txtBefore + updatedLogicTxt + txtAfter;
+
+                    nextSearchPos = txtBefore.length + updatedLogicTxt.length;
+
+                    // Was that the end of the line?
+                    if( txtAfter.length <= 0 )
+                        nextSearchPos = -1;
+                }
+
+                // No logic left
+                else {
+                    nextSearchPos = -1;
+                }
+
+            } while(nextSearchPos !== -1);
             
             // runOn (inklewriter elipsis) == ink-style glue
             let isLastLine = lineIdx === stitch.textContent.length-1;
@@ -510,7 +577,7 @@ export function convert(sourceJSON : InklewriterJSON) : string {
         // Divert, assumed to be mutually exclusive v.s. choices
         if( stitch.divert ) {
             let nextStitch = stitchIdx < story.orderedStitches.length-1 ? story.orderedStitches[stitchIdx+1] : null;
-            let divertTargetFollowsOnDirectly = stitch.divertTarget === nextStitch && nextStitch && nextStitch.divertBackLinks.length === 1;
+            let divertTargetFollowsOnDirectly = stitch.divertTarget === nextStitch && nextStitch && nextStitch.divertBackLinks.length === 1 && !nextStitch.isHeader;
             if( !divertTargetFollowsOnDirectly ) {
                 let targetName = resolveDivertTargetStr(stitch.divert, stitch);
                 inkLines.push(`    -> ${targetName}`);
