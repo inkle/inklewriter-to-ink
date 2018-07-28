@@ -573,6 +573,10 @@ export function convert(sourceJSON : InklewriterJSON) : string {
                 let logicPos = line.indexOf("{", nextSearchPos);
                 if( logicPos > -1 ) {
                     let logicEndPos = line.indexOf(":", logicPos);
+
+                    // Might be a sequence rather than normal conditional logic
+                    if( logicEndPos === -1 )
+                        logicEndPos = line.indexOf("}", logicPos)
                     
                     let logicTxt = line.substr(logicPos, logicEndPos-logicPos);
 
@@ -604,6 +608,13 @@ export function convert(sourceJSON : InklewriterJSON) : string {
             // Bold
             line = line.replace("*-", "<strong>");
             line = line.replace("-*", "</strong>");
+
+            // Inline value evaluation
+            // In inklewriter it looks like this:
+            //  [value:varName]
+            // In ink it looks like this:
+            //  {varName}
+            line = line.replace(/\[value:([^\]]+)\]/, "{$1}");
             
             // runOn (inklewriter elipsis) == ink-style glue
             let isLastLine = lineIdx === stitch.textContent.length-1;
