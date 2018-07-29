@@ -13,10 +13,46 @@
 
 <body>
 
+    <input type="file" id="file" name="inklewriter JSON file" />
+
+    <pre id="result_ink">
+
+    </pre>
+
+    <!-- Hack to allow easy reuse of the node-based JS file! -->
+    <script>let exports = {}</script>
     <script src="dist/inklewriter-convert.js"></script>
+
+
     <script>
-    let convert = require("./inklewriter-convert");
-    convert("");
+        function handleFileSelect(evt) {
+            let files = evt.target.files; // FileList object
+            if( !files || files.length <= 0 )
+                return;
+
+            let file = files[0];
+            var reader = new FileReader();
+
+            reader.onload = function(theFile) {
+                console.log(reader.result);
+
+                let resultTxt = "";
+                try {
+                    let loadedJSON = JSON.parse(reader.result);
+                    resultTxt = convert(loadedJSON);
+                } catch(e) {
+                    resultTxt = e.toString();
+                }
+
+                document.getElementById('result_ink').innerText = resultTxt;
+            };
+
+            // Read in the image file as a data URL.
+            reader.readAsText(file);
+        }
+
+        document.getElementById('file').addEventListener('change', handleFileSelect, false);
     </script>
+
 </body>
 </html>
