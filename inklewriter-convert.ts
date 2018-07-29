@@ -526,10 +526,6 @@ export function convert(sourceJSON : InklewriterJSON) : string {
         // Do we need to label this stitch?
         else {
 
-            if( stitch.name === "forNowAtLeastPer" ) {
-                console.log("boo");
-            }
-            
             // Directly following on to this stitch?
             if( stitch.divertBackLinks.length === 1 && stitch.divertBackLinks[0].header === stitch.header && stitch.choiceBackLinks.length === 0 && !stitch.isHeader ) {
                 // no need to print stitch title
