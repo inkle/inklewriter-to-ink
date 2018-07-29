@@ -1,14 +1,31 @@
 import fs = require('fs');
 import {convert} from "./inklewriter-convert"
 
-let jsonText = fs.readFileSync("theintercept.json", "utf8");
-let json = JSON.parse(jsonText);
+let testFiles = [
+    "makeUpBreakUp",
+    "musgraveritual",
+    "neighbourhoodpredators",
+    "theintercept",
+    "whack",
+    "smallsample"
+]
 
-try {
-    let inkText = convert(json);
-    console.log(inkText);
-    fs.writeFileSync("theintercept.ink", inkText, "utf8");
-} catch(error) {
-    console.error(error);
+let debugLogFile = "theintercept";
+
+for(let filename of testFiles) {
+
+    let jsonText = fs.readFileSync(`test-inklewriter-json/${filename}.json`, "utf8");
+    let json = JSON.parse(jsonText);
+
+    try {
+        let inkText = convert(json);
+        
+        if( filename === debugLogFile )
+            console.log(inkText);
+
+        fs.writeFileSync(`test-inklewriter-json/${filename}.ink`, inkText, "utf8");
+    } catch(error) {
+        console.error(error);
+    }
 }
 

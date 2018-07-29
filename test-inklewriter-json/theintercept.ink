@@ -1,5 +1,5 @@
 // ---- The Intercept ----
-// Converted from original URL:
+// Converted from original inklewriter URL:
 // http://writer.inklestudios.com/stories/theintercept
 # title: The Intercept
 # author: Jon Ingold
