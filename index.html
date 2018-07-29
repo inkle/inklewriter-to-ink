@@ -7,19 +7,21 @@
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <!-- <link rel="stylesheet" href="style.css"> -->
+    <link rel="stylesheet" href="style.css">
 
 </head>
 
 <body>
 
-    <style>
-    .hidden {
-        display: none;
-    }
-    </style>
-
     <h1>inklewriter JSON to ink converter</h1>
+
+    <p>This converter takes the data from an <a href="https://www.inklestudios.com/inklewriter">inklewriter</a> story, and converts it to an <a href="https://www.inklestudios.com/ink">ink</a> file.</p>
+    <p>To use:</p>
+    <ul>
+        <li>Download your story data. Click on the Share button in inklewriter, copy the URL and put ".json" on the end. Download that file to your computer.</li>
+        <li>Click choose file below and pick the .json file.</li>
+        <li>It will attempt to convert your story into ink. You can then copy/paste it or simply download the ink file.</li>
+    </ul>
 
     <input type="file" id="file" name="inklewriter JSON file" />
 
@@ -28,7 +30,7 @@
 
         <button id="download_button">Download</button>
 
-        <pre id="result_ink"></pre>
+        <pre id="result_ink" class="ink"></pre>
     </div>
 
     
