@@ -23,4 +23,4 @@ for (let filename of testFiles) {
         console.error(error);
     }
 }
-//# sourceMappingURL=index.js.map
+//# sourceMappingURL=test.js.map
