@@ -26,7 +26,7 @@
     <div id="converted_ink" class="hidden">
         <h3 id="converted_ink_title"></h3> 
 
-        <button id="download_button" onclick='download()'>Download</button>
+        <button id="download_button">Download</button>
 
         <pre id="result_ink"></pre>
     </div>
@@ -80,6 +80,7 @@
         }
 
         document.getElementById('file').addEventListener('change', handleFileSelect, false);
+        document.getElementById('download_button').addEventListener('click', download, false);
 
         function download() {
             download_file(convertedInkFilename, convertedInk);
