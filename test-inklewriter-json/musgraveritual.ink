@@ -195,7 +195,7 @@ Holmes looked over at me in a flash, eyes narrowed.
     -> youAreQuiteRight1
 
 = itIsYouWhoDoesMe
-"It is <em>you</em> who does /=me=/ a disservice," Holmes replied, quite sharply now. "My dear Watson,  <>
+"It is <em>you</em> who does <em>me</em> a disservice," Holmes replied, quite sharply now. "My dear Watson,  <>
     -> Cant_expect.youCouldHardlyEx
 
 = youAreQuiteRight1

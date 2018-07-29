@@ -105,7 +105,7 @@ That's the stupid thing about all this. You can't ever know for certain, no matt
   + ["It doesn't matter what I see."] -> How_could_it_not_matter
 
 = butItIsAboutYouI
-"But it <em>is</em> about you. It's about whether you trust me, or not. That's /=all=/ it's about. It's not even about what I've done. I haven't done anything, but that doesn't matter. All that matters is what you believe about me."
+"But it <em>is</em> about you. It's about whether you trust me, or not. That's <em>all</em> it's about. It's not even about what I've done. I haven't done anything, but that doesn't matter. All that matters is what you believe about me."
   + ["I believe you'd say anything."] -> dontSayThatDontS
   + {not dont_trust} ["I trust you."] -> Precious
   + ["We're over. It's as simple as that."] -> Over

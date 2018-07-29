@@ -156,7 +156,7 @@ Yes, I suppose so. Perhaps it's simply that, when there's a dinosaur coming up t
 = thatsGoodOfYouTo
 That's good of you to say so, but honestly, <>
  - (imQuiteCertainYo)
-I'm quite certain you won't. If our situations were reversed and you were about to tell me that there's a dinosaur crunching up the gravel path outside <em>your</em> house, I wouldn't believe /=you=/.
+I'm quite certain you won't. If our situations were reversed and you were about to tell me that there's a dinosaur crunching up the gravel path outside <em>your</em> house, I wouldn't believe <em>you</em>.
   + [A dinosaur?] -> A_dinosaur
   + [You're right, I don't believe you] -> iThoughtYouWould
 

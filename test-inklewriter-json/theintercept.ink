@@ -492,7 +492,7 @@ Harris nods once.  <>
 ==== Loses_temper ====
   ~ lost_temper = true
 "You imbecile," Harris replies, with sudden force. He is half out of his chair. "You know the situation as well as I do, so why all this fencing? The Hun are poised like rats, ready to run all over this country. They'll destroy everything, you do understand that, don't you? You're not so locked up inside your crossword puzzles that you don't see that, are you? And this machine we have here - you men - you are the best and only hope this country has. God help her."
-I sit back, startled by the force of his outburst. His carefully sculpted expression has curled to angry disgust and there is spit flecking his lips. <em>He really does hate me</em>, I think. /=He'll have my neck just for the taste of it.=/
+I sit back, startled by the force of his outburst. His carefully sculpted expression has curled to angry disgust and there is spit flecking his lips. <em>He really does hate me</em>, I think. <em>He'll have my neck just for the taste of it.</em>
   + Calm him
         -> nowSteadyOnIRepl 
   + Oppose him
@@ -668,7 +668,7 @@ Something is wrong with me, I am sure of it. There is a strange, bitter flavour 
     -> iHaveBecomeSomeh
 
 = iHaveBecomeSomeh
-I have become, somehow, an accustomed liar - the words roll easily off my tongue. <em>Perhaps I am a traitor</em>, I think, /=now that I dissemble as easily as one.=/
+I have become, somehow, an accustomed liar - the words roll easily off my tongue. <em>Perhaps I am a traitor</em>, I think, <em>now that I dissemble as easily as one.</em>
     -> goOnHarrisSaysGi
 
 = harrisNodsAndWai
@@ -858,7 +858,7 @@ He raps on the door for the guard and gives the man a quick instruction. He retu
     -> hoopersInHutBein
 
 = butWhateverImDoi
-But whatever I'm doing with my body, my mind is scheming. <em>Somehow, </em>I'm thinking, /=I have to get away from these men long enough to get that component behind Hut 2 and put it somewhere Hooper will go. Or, otherwise, somehow get Hooper to go there himself...=/
+But whatever I'm doing with my body, my mind is scheming. <em>Somehow, </em>I'm thinking, <em>I have to get away from these men long enough to get that component behind Hut 2 and put it somewhere Hooper will go. Or, otherwise, somehow get Hooper to go there himself...</em>
     -> harrisMarchesMeO
 
 = hoopersInHutBein
@@ -1206,7 +1206,7 @@ I'm hustled into one of the huts. Nowhere to sleep, but they're not interested i
 = beQuietManWeKnow
   ~ with_capn = true
 "Be quiet, man. We know all about your and your sordid affairs." The Captain curls his lip. "Don't you know there's a war on? Do you know the kind of place they would have sent you if it haven't had been for that brain of yours? Don't you think you owe it to your country to use it a little more?"
-<em>Do I</em>, I wonder? /=Do I owe this country anything, this country that has spurned who and what am I since the day I became a man?=/
+<em>Do I</em>, I wonder? <em>Do I owe this country anything, this country that has spurned who and what am I since the day I became a man?</em>
   + Yes
         -> myAngerDeflatesL 
   + No
@@ -2663,7 +2663,7 @@ I open my jacket and pull the Bombe component out of my pocket. Harris takes it 
 
 = youLeaveMeNoChoi
   ~ too_complex = true
-"You leave me no choice," Harris snaps back, eyes cold as gun-metal. "You and your damn cyphers. Your damn clever problems. If men like you didn't exist, if we could just all be <em>straight</em> with one another." He gets to his feet and heads for the door. "I fear for the future of this world, with men like you in. Reich or no Reich, Mr Manning, people like you simply /=complicate=/ matters."
+"You leave me no choice," Harris snaps back, eyes cold as gun-metal. "You and your damn cyphers. Your damn clever problems. If men like you didn't exist, if we could just all be <em>straight</em> with one another." He gets to his feet and heads for the door. "I fear for the future of this world, with men like you in. Reich or no Reich, Mr Manning, people like you simply <em>complicate</em> matters."
     -> Alone_about_to_die
 
 = forGodsSakeManWh

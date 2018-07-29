@@ -303,11 +303,11 @@ function convert(sourceJSON) {
             // Replace flag names with VAR names
             for (let flagName in flagNamesToVarNames) {
                 let varName = flagNamesToVarNames[flagName];
-                logicStr = logicStr.replace(flagName, varName);
+                logicStr = logicStr.split(flagName).join(varName);
             }
             // Replace single "=" with double "=="
             // (but not >= or <=!)
-            logicStr = logicStr.replace(/([^><])(=)/, "$1==");
+            logicStr = logicStr.replace(/([^><])(=)/g, "$1==");
         }
         return logicStr;
     }
@@ -389,23 +389,23 @@ function convert(sourceJSON) {
                 }
             } while (nextSearchPos !== -1);
             // Italics
-            line = line.replace("/=", "<em>");
-            line = line.replace("=/", "</em>");
+            line = line.split("/=").join("<em>");
+            line = line.split("=/").join("</em>");
             // Bold
-            line = line.replace("*-", "<strong>");
-            line = line.replace("-*", "</strong>");
+            line = line.split("*-").join("<strong>");
+            line = line.split("-*").join("</strong>");
             // Inline value evaluation
             // In inklewriter it looks like this:
             //  [value:varName]
             // In ink it looks like this:
             //  {varName}
-            line = line.replace(/\[value:([^\]]+)\]/, "{$1}");
+            line = line.replace(/\[value:([^\]]+)\]/g, "{$1}");
             // runOn (inklewriter elipsis) == ink-style glue
             let isLastLine = lineIdx === stitch.textContent.length - 1;
             if (isLastLine && stitch.runOn)
                 line += " <>";
             // old style runOn that has't be upgraded
-            line = line.replace("[...]", "<>");
+            line = line.split("[...]").join("<>");
             if (isConditional)
                 line = "    " + line;
             inkLines.push(line);
