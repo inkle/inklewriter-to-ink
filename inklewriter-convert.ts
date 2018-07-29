@@ -508,10 +508,16 @@ export function convert(sourceJSON : InklewriterJSON) : string {
     inkLines.push(`-> ${initialKnotName}`);
     inkLines.push(``);
 
-    for(let stitchIdx = 0; stitchIdx < story.orderedStitches.length; stitchIdx++) {
+    let processedStitchNames : { [name:string]: true } = {};
 
-        let stitch = story.orderedStitches[stitchIdx];
+    function processStitch(stitch : Stitch, stitchIdx : number) {
 
+        // Has this stitch already been processed?
+        if( processedStitchNames[stitch.name] )
+            return;
+        processedStitchNames[stitch.name] = true;
+
+        // Header is always explicitly named as a knot
         if( stitch.isHeader ) {
             var knotName = inklewriterStitchToInkNames[stitch.name];
             inkLines.push(`\n==== ${knotName} ====`);
@@ -519,15 +525,19 @@ export function convert(sourceJSON : InklewriterJSON) : string {
 
         // Do we need to label this stitch?
         else {
-            let prevStitch = stitchIdx > 0 ? story.orderedStitches[stitchIdx-1] : null;
-            var directlyFollowsOn = stitch.divertBackLinks.length === 1 && stitch.divertBackLinks[0] === prevStitch;
-            if( !directlyFollowsOn ) {
-                inkLines.push(`\n= ${inklewriterStitchToInkNames[stitch.name]}`);
+
+            if( stitch.name === "forNowAtLeastPer" ) {
+                console.log("boo");
+            }
+            
+            // Directly following on to this stitch?
+            if( stitch.divertBackLinks.length === 1 && stitch.divertBackLinks[0].header === stitch.header && stitch.choiceBackLinks.length === 0 && !stitch.isHeader ) {
+                // no need to print stitch title
             }
 
-            // Follows directly on but it's also referenced elsewhere, so let's use a weave gather point
-            else if( stitch.choiceBackLinks.length > 0 ) {
-                inkLines.push(` - (${inklewriterStitchToInkNames[stitch.name]})`);
+            // Otherwise, name this stitch for full linking
+            else {
+                inkLines.push(`\n= ${inklewriterStitchToInkNames[stitch.name]}`);
             }
         }
 
@@ -672,13 +682,21 @@ export function convert(sourceJSON : InklewriterJSON) : string {
         }
 
         // Divert, assumed to be mutually exclusive v.s. choices
+        let nextStitch : Stitch | null = null;
+        let divertTargetFollowsOnDirectly = false;
         if( stitch.divert ) {
-            let nextStitch = stitchIdx < story.orderedStitches.length-1 ? story.orderedStitches[stitchIdx+1] : null;
-            let divertTargetFollowsOnDirectly = stitch.divertTarget === nextStitch && nextStitch && nextStitch.divertBackLinks.length === 1 && !nextStitch.isHeader;
+            nextStitch = stitch.divertTarget;// stitchIdx < story.orderedStitches.length-1 ? story.orderedStitches[stitchIdx+1] : null;
+            divertTargetFollowsOnDirectly = (nextStitch !== null && nextStitch.divertBackLinks.length === 1 && nextStitch.choiceBackLinks.length == 0 && !nextStitch.isHeader && nextStitch.header === stitch.header) ? true : false;
             if( !divertTargetFollowsOnDirectly ) {
                 let targetName = resolveDivertTargetStr(stitch.divert, stitch);
                 inkLines.push(`    -> ${targetName}`);
             }
+        }
+
+        // Immediately recurse if we're following straight on
+        if( divertTargetFollowsOnDirectly && nextStitch !== null ) {
+            let nextStitchIdx = story.orderedStitches.indexOf(nextStitch);
+            processStitch(nextStitch, nextStitchIdx);
         }
 
         // Assume all loose ends are complete, or not?
@@ -686,6 +704,13 @@ export function convert(sourceJSON : InklewriterJSON) : string {
             inkLines.push(`    -> END`);
         }
     }
+
+    // Process all stitches
+    for(let stitchIdx = 0; stitchIdx < story.orderedStitches.length; stitchIdx++) {
+        let stitch = story.orderedStitches[stitchIdx];
+        processStitch(stitch, stitchIdx);
+    }
+
 
     // Final ink
     return inkLines.join("\n");

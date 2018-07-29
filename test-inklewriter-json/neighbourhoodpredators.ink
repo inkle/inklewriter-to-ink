@@ -51,16 +51,13 @@ Well; when I say, "bolts out of the room", what I mean is, "bolts out through th
 
 = imNotSureShesHea
 I'm not sure. She's heard a noise, probably, rather than seen anything. Her hearing is much better than mine. She will always race to the front door a few seconds before the doorbell goes: she knows the sound of shoes crunching down the gravel in the pathway.
-    -> butICantHearAnyt
+But I can't hear anything - or see anything through the window, either. What's startled her is a mystery to me.
+  + [Well, she's only a cat] -> sheIsShesFascina
+  + [You should go and look] -> youreRightIShoul
 
 = allRightThenHold
 All right, then. Hold on a moment.
     -> Outside
-
-= butICantHearAnyt
-But I can't hear anything - or see anything through the window, either. What's startled her is a mystery to me.
-  + [Well, she's only a cat] -> sheIsShesFascina
-  + [You should go and look] -> youreRightIShoul
 
 = sheIsShesFascina
 She is. She's fascinated by flies, and gets startled by the fridge when it starts to hum. There's no reason to let what startles her get me up off the sofa. If I did, I'd be spending my whole life dashing around the house.
@@ -155,7 +152,9 @@ Yes, I suppose so. Perhaps it's simply that, when there's a dinosaur coming up t
 
 = thatsGoodOfYouTo
 That's good of you to say so, but honestly, <>
- - (imQuiteCertainYo)
+    -> imQuiteCertainYo
+
+= imQuiteCertainYo
 I'm quite certain you won't. If our situations were reversed and you were about to tell me that there's a dinosaur crunching up the gravel path outside <em>your</em> house, I wouldn't believe <em>you</em>.
   + [A dinosaur?] -> A_dinosaur
   + [You're right, I don't believe you] -> iThoughtYouWould
@@ -238,16 +237,13 @@ Cut myself as I climbed, as I remember. Just a little scrape on my hand.
 
 = ohDearOhDearOhDe
 Oh dear. Oh dear, oh dear. You might be right. Oh dear. I think I might be in trouble.
-    -> seriousTrouble
+Serious trouble.
+    -> Help_me
 
 = iDidntSeeOneButI
 I didn't see one. But I guess, now I come to think about it, I did hear something breathing when I was leaving.
   + [You're in trouble, I think] -> youMakeThatSound
   + [You should call someone] -> whoWouldICallImC
-
-= seriousTrouble
-Serious trouble.
-    -> Help_me
 
 = whoWouldICallImC
 Who would I call? I'm calling you right now. <>
@@ -597,15 +593,12 @@ The fence is the only way; I can climb over that into my neighbour's garden. Jus
 
 = thanksIAppreciat
 Thanks. I appreciate the encouragement.
-    -> actuallyEvenBett
+Actually, even better than encouragement would be having both hands free. Hold a moment.
+    -> silenceOccasiona
 
 = yes
 Yes?
   + [If you put the phone down] -> ohGoodPointAllRi
-
-= actuallyEvenBett
-Actually, even better than encouragement would be having both hands free. Hold a moment.
-    -> silenceOccasiona
 
 = ohGoodPointAllRi
 Oh, good point. All right. Hold on a moment.
@@ -649,7 +642,8 @@ Goodness, she's got up into the tree. I wonder how she managed that? She's norma
 
 = yesProbablyIDont
 Yes, probably. I don't know why I'm following her around anyway. It'd be a terrible thing if I had to admit that my cat's life is more exciting than my own, wouldn't it?
-    -> ohNowISeeHer
+Oh, now I see her. <>
+    -> goodnessShesGotU
 
 = chanceWouldBeAFi
 Chance would be a fine thing. It'd take some doing to get <em>me</em> up into the branches!
@@ -658,10 +652,6 @@ Chance would be a fine thing. It'd take some doing to get <em>me</em> up into th
 = didIMentionEarli
 Did I mention earlier she sometimes runs into window. She sometimes runs into windows as well.
     -> Heard_something
-
-= ohNowISeeHer
-Oh, now I see her. <>
-    -> goodnessShesGotU
 
 ==== Heard_something ====
 Wait a moment. I heard something.
@@ -701,7 +691,8 @@ Fence. I suppose you're right: bricks would be more challenging. The fence has h
 
 = youveGotABadFeel
 You've got a bad feeling about all this, do you? I can't think why. You can't hear what I can hear. 
-    -> asForMeWithWhatI
+As for me, with what I can hear? I've got a <em>really</em> bad feeling. <>
+    -> soundsLikeTheres
 
 = soundsLikeTheres
 Sounds like there's something prowling around out there. It sounds like it's digging.
@@ -711,10 +702,6 @@ Sounds like there's something prowling around out there. It sounds like it's dig
 = ifItsThePostmanT
 If it's the postman, then it sounds like he's decided to get a parcel delivered by rushing the front door.
     -> Safe_out_here
-
-= asForMeWithWhatI
-As for me, with what I can hear? I've got a <em>really</em> bad feeling. <>
-    -> soundsLikeTheres
 
 = iCantThinkWhatEl
 I can't think what else would be rushing the front door. The scrabble of feet on the gravel then a thump.
@@ -727,7 +714,9 @@ I'm glad I'm out here. There's no side-path, it'll have to get into the house an
 
 = well
 Well, <>
- - (imNotSureNotCert)
+    -> imNotSureNotCert
+
+= imNotSureNotCert
 I'm not sure. Not certain at all. But...
   + [But?] -> well1
 

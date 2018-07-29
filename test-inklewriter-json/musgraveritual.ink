@@ -92,7 +92,11 @@ He smiled at me with mischievious eyes. "My dear boy," he answered. "I have not 
 
 = butThereAreHundr
 "But there are hundreds here," I replied. "You can't possibly remember them all, not in detail. Why," and I snatched at one nearby bundle, "this one here must be seventy pages of close writing. You cannot have it word for word."
-    -> tellMeTheTitleHe
+"Tell me the title," he replied, steepling his fingers.
+  + Read it honestly
+        -> ricolettiOfTheCl 
+  + Invent something to infuriate him
+        -> Attempted_Trick 
 
 = thenYouDontNeedT
 "Then you don't need to keep them," I {mischevious > 1:argued|reasoned} in return. "If you can recall their details."
@@ -101,13 +105,6 @@ He smiled at me with mischievious eyes. "My dear boy," he answered. "I have not 
         -> wellThenIReplied 
   + "Then that is quite a feat of memory."
         -> thenThatIsQuiteA 
-
-= tellMeTheTitleHe
-"Tell me the title," he replied, steepling his fingers.
-  + Read it honestly
-        -> ricolettiOfTheCl 
-  + Invent something to infuriate him
-        -> Attempted_Trick 
 
 = wellThenIReplied
   ~ bold = bold + 1
@@ -159,7 +156,8 @@ Although it pains me to say it, my friend's undeniably excellent mind and powers
 = theCollapseOfThe
   ~ wessex_bridge = true
 "The Collapse of the Wessex Bridge."
-    -> holmesLookedOver
+Holmes looked over at me in a flash, eyes narrowed.
+    -> reallyWatsonHeDe
 
 = theAffairOfTheCh
   ~ okay_attempt = true
@@ -169,10 +167,6 @@ Although it pains me to say it, my friend's undeniably excellent mind and powers
 
 = holmesLookedUpAt
 Holmes looked up at me with a frown.
-    -> reallyWatsonHeDe
-
-= holmesLookedOver
-Holmes looked over at me in a flash, eyes narrowed.
     -> reallyWatsonHeDe
 
 = reallyWatsonHeDe
@@ -185,20 +179,14 @@ Holmes looked over at me in a flash, eyes narrowed.
 = youDoMeADisservi
   ~ mischevious = mischevious + 1
 "You do me a disservice," I protested, returning my eyes to the document in front of me. "I am telling you the name is as I read it, and if you cannot detail the case, then I believe I have won our little wager of a moment ago."
-    -> itIsYouWhoDoesMe
+"It is <em>you</em> who does <em>me</em> a disservice," Holmes replied, quite sharply now. "My dear Watson,  <>
+    -> Cant_expect.youCouldHardlyEx
 
 = youAreQuiteRight
 { mischevious < 1:
      ~ mischevious = mischevious - 1
     "You are quite right," I sighed. "It was a feeble deception, and I beg that you forgive me."
 }
-    -> youAreQuiteRight1
-
-= itIsYouWhoDoesMe
-"It is <em>you</em> who does <em>me</em> a disservice," Holmes replied, quite sharply now. "My dear Watson,  <>
-    -> Cant_expect.youCouldHardlyEx
-
-= youAreQuiteRight1
 { not mischevious < 1:
     "You are quite right," I snapped, with irritation. "Damn you, Holmes, will you never be bested?"
 }
@@ -230,33 +218,27 @@ I shake my head and {mischevious < 2:laugh|harrumph with annoyance}. "Well, then
 
 = butThoseDetailsI
 "But those details I have practised since," I replied. "They are the tools of my trade. If you asked me instead to remember the face of each man I have treated when shot; well, then I should have a harder time of it."
-    -> theExamplesDrawn
-
-= iAmNoFreshYoungW
-  ~ story_about_failures = true
-"I am no fresh young whippersnapper," he replied, with equal {mischevious < 1:cool|animation}. "You must understand, Watson, I have been studying my subject - the subject of <em>people</em> - for a long time now. And I have not always been as proficient as I am now. Here."
-    -> Gets_trunk
-
-= theExamplesDrawn
 "The examples drawn from previous cases are my tools{burn_papers: and that is why they must never be <em>burnt </em>like common newspaper, as you so carelessly suggested}," Holmes answered sternly. "A detective must always draw on experience, and reason. Without either of those, he cannot hope to succeed against that most imaginative and creative of beasts, the London criminal."
   + "Just as you say."
         -> justAsYouSayImSu 
   + "I'm sure I could find a case here you have forgotten."
         -> imQuiteSureICoul 
 
+= iAmNoFreshYoungW
+  ~ story_about_failures = true
+"I am no fresh young whippersnapper," he replied, with equal {mischevious < 1:cool|animation}. "You must understand, Watson, I have been studying my subject - the subject of <em>people</em> - for a long time now. And I have not always been as proficient as I am now. Here."
+    -> Gets_trunk
+
 = imQuiteSureICoul
 "I'm quite sure I could find a case here you have forgotten, all the same," I reply, somewhat petulantly, looking around the heaped mountains of manuscripts with a view towards choosing one particularly buried and particularly faded.
-    -> butHolmesInterru
+But Holmes interrupted my search. <>
+"Do not trouble yourself with that," he remarked, getting to his feet. "Instead, let me interest you with the facts of a case I most certainly do remember. One moment."  <>
+    -> Gets_trunk
 
 = justAsYouSayImSu
   ~ mischevious = mischevious-1
 "Just as you say, I'm sure." I turned my attention to the fire, {mischevious > 1:somewhat stung|somewhat tired by his inexhaustible intellect}.
 "My dear man, there's no need to be so down in the mouth. Here, I know what will interest you. Wait there a moment."  <>
-    -> Gets_trunk
-
-= butHolmesInterru
-But Holmes interrupted my search. <>
-"Do not trouble yourself with that," he remarked, getting to his feet. "Instead, let me interest you with the facts of a case I most certainly do remember. One moment."  <>
     -> Gets_trunk
 
 ==== Gets_trunk ====
@@ -271,18 +253,12 @@ And with a sudden burst of energy, quite unlike the state of lethargy in which h
 
 = whatIsThatIAsked
 "What is that?" I asked, leaning forward with interest. "Records of your early work?"
-    -> andNotAllSuccess
+"And not all successes, either. Now here." 
+    -> reachingIntoTheT
 
 = youIntendToUnpac
   ~ mischevious = mischevious + 1
 "You intend to unpack that here, do you?" I remarked grudgingly. "Perhaps onto your own chair; it is the only free surface in the room."
-    -> nowThenWatsonmis
-
-= andNotAllSuccess
-"And not all successes, either. Now here." 
-    -> reachingIntoTheT
-
-= nowThenWatsonmis
 "Now then, Watson.{mischevious> 1:" His tone was severe; I had clearly irritated him with my sour mood. "} I would have expected my biographer to show more interest in a box filled with my early works. And this one in particular."
     -> reachingIntoTheT
 
@@ -298,25 +274,16 @@ Reaching into the trunk he brought up a small wooden box with a sliding lid such
 
 = iTookItFromHimIn
 I took it from him, intrigued {mischevious > 1:despite my churlish state of mind}.
-    -> wellThenHeDeclar
+  ~ watson_opens_box = true
+"Well, then?" he declared, with {mischevious> 2: an air of combative stubbornness | childish excitement}. "Open it, and tell me what you make of the contents." Then he stepped back, grabbed a poker and pushed vigorously at the fresh coals {more_coal: I|he} had previously added, as if by helping them to kindle he was stoking my own enthusiasm for his adventure.
+I did as instructed and slid back the lid.  <>
+    -> Open_Box
 
 = iAmQuiteComforta
   ~ mischevious = mischevious + 1
 "I am quite comfortable here," I replied, waving away the box. "Tell your story, if you must, but do not trouble me to get up from under my blanket."
-    -> heLookedBackAtMe
-
-= wellThenHeDeclar
-  ~ watson_opens_box = true
-"Well, then?" he declared, with {mischevious> 2: an air of combative stubbornness | childish excitement}. "Open it, and tell me what you make of the contents." Then he stepped back, grabbed a poker and pushed vigorously at the fresh coals {more_coal: I|he} had previously added, as if by helping them to kindle he was stoking my own enthusiasm for his adventure.
-    -> iDidAsInstructed
-
-= heLookedBackAtMe
 He looked back at me with {mischevious > 1:a grave nod|some surprise at my cool attitude}. "Very well."  <>
 Resuming his seat himself he began to unpack the box.  <>
-    -> Open_Box
-
-= iDidAsInstructed
-I did as instructed and slid back the lid.  <>
     -> Open_Box
 
 ==== Open_Box ====
@@ -360,7 +327,8 @@ The key was simply a key, of no great importance. I am sure Holmes himself could
   ~ examined_paper = true
   ~ number_examined = number_examined + 1
 The paper was most curious. Smoothing it out, I read a serious of questions and answers, like some kind of rhyme. Looking up at Holmes to ask him what it meant, he smiled, and waved my question away.
-    -> inGoodTimeWatson
+"In good time, Watson. In good time."
+    -> Examining_items
 
 = theWoodenPegAndS
   ~ examined_peg = true
@@ -370,7 +338,11 @@ The wooden peg and string was a curious, home-made contraption. Intended for mea
 
 = iNoddedSlightlyI
 I nodded slightly. "It is a curious collection{number_examined > 1:, no doubt}."
-    -> veryCuriousAndTh
+"Very curious, and the story that hangs round it will strike you as being more curious still."
+  + "These relics have a history?"
+        -> theseRelicsHaveA 
+  + "Very well, let's have it."
+        -> veryWellThenLets 
 
 = lessInterestingW
   ~ examined_discs = true
@@ -378,29 +350,15 @@ I nodded slightly. "It is a curious collection{number_examined > 1:, no doubt}."
 Less interesting were the discs. They were too heavily rusted to be examined more closely, but could perhaps once have been coins.
     -> Examining_items
 
-= veryCuriousAndTh
-"Very curious, and the story that hangs round it will strike you as being more curious still."
-  + "These relics have a history?"
-        -> theseRelicsHaveA 
-  + "Very well, let's have it."
-        -> veryWellThenLets 
-
-= inGoodTimeWatson
-"In good time, Watson. In good time."
-    -> Examining_items
-
 = theseRelicsHaveA
 "These relics have a history, then?"
-    -> soMuchSoMyDearWa
+"So much so, my dear Watson, that they <em>are</em> a history."
+"What do you mean by that?"
+    -> The_Musgrave_Ritual
 
 = veryWellThenLets
   ~ mischevious = mischevious + 1
 "Very well, then. Let's have it."
-    -> The_Musgrave_Ritual
-
-= soMuchSoMyDearWa
-"So much so, my dear Watson, that they <em>are</em> a history."
-"What do you mean by that?"
     -> The_Musgrave_Ritual
 
 ==== The_Musgrave_Ritual ====
@@ -416,28 +374,19 @@ Sherlock Holmes {watson_opens_box:reached over and} lifted the items out of the 
 
 = iHaveNoIdeaWhatT
 "I have no idea what that means," I complained.
-    -> andTheresNoReaso
+"And there's no reason why you should, Watson.  <>
+    -> forgiveMyTheatri
 
 = thenICantSeeWhyY
 "Then I can't see why you asked me my opinion, since I have no idea what this Musgrave Ritual of yours is."
-    -> holmesNodsQuiteR
+Holmes nods. "Quite right.  <>
+    -> forgiveMyTheatri
 
 = tellMeMoreIDeman
   ~ mischevious = mischevious -1
 "Tell me more," I demanded, leaning forward with sudden interest.
-    -> itWouldBeAPleasu
-
-= holmesNodsQuiteR
-Holmes nods. "Quite right.  <>
-    -> forgiveMyTheatri
-
-= itWouldBeAPleasu
 "It would be a pleasure," Holmes replied, spreading his hands to the fire.  <>
     -> whenIFirstCameUp
-
-= andTheresNoReaso
-"And there's no reason why you should, Watson.  <>
-    -> forgiveMyTheatri
 
 = whenIFirstCameUp
 "When I first came up to London I had rooms in Montague Street, just round the corner from the British Museum, and there I waited, filling in my too abundant leisure time by studying all those branches of science which might make me more efficient. Now and again cases came my way, and that of the Musgrave Ritual was one such case, and it is to that singular chain of events that I trace my first stride towards the position which I now hold."
@@ -450,26 +399,20 @@ Holmes nods. "Quite right.  <>
 { not mischevious > 1:
     Forgive my theatrical presentation. I will begin my tale.
 }
-    -> youreInASorryMoo
-
-= tellMeHowDidTheC
-"Tell me: how did the case begin?"
-    -> reginaldMusgrave
-
-= youreInASorryMoo
 { mischevious > 1:
     You're in a sorry mood this evening, aren't you, my good man? Well, perhaps you're lacking for mental exercise. Let's see if we can't warm you up a little. Here is my tale: let's see what you make of it, shall we?
 }
     -> whenIFirstCameUp
 
+= tellMeHowDidTheC
+"Tell me: how did the case begin?"
+"Reginald Musgrave," Holmes announced. "A man of exceedingly aristocratic type, thin, high-nosed and large-eyed, with languid and yet courtly matters. He was a scion of one of the very oldest families in the kingdom, though his branch was a cadet one which had separated from the northern Musgraves some time in the sixteenth century and had established itself in the Manor House of Hurlstone,  <>
+    -> perhapsTheOldest
+
 = aCaseOfImportanc
 "A case of importance, then?"
   ~ known_from_college = true
 "A case with large issues at stake, certainly, although I didn't know that to begin with. At first, I thought nothing more than that I was seeing an old friend from college. Reginald Musgrave, an aristocratic fellow and a scion of one of the very oldest families in the kingdom, established in the Manor House of Hurlstone,  <>
-    -> perhapsTheOldest
-
-= reginaldMusgrave
-"Reginald Musgrave," Holmes announced. "A man of exceedingly aristocratic type, thin, high-nosed and large-eyed, with languid and yet courtly matters. He was a scion of one of the very oldest families in the kingdom, though his branch was a cadet one which had separated from the northern Musgraves some time in the sixteenth century and had established itself in the Manor House of Hurlstone,  <>
     -> perhapsTheOldest
 
 = perhapsTheOldest
@@ -481,22 +424,13 @@ perhaps the oldest inhabited building in the country."
 
 = youVisitedHimInH
 "You visited him? In his house?"
-    -> youWouldHaveThou
+"You would have thought so, for a man like that. But no: no, if you consider the matter, there would have been no cause in my life to occasion such a visit. So in fact, it was he came to see me.
+"I know it your habit to begin tales with the weather and setting - 'It was a hot summer's day...' or 'It was a long autumn morning.' Well, I cannot remember the detail and I will refrain from inventing it. Let us simply say this.  <>
+    -> Entered_room
 
 = heCameToSeeYou
 "He came to see you."
-    -> indeedWatsonQuit
-
-= youWouldHaveThou
-"You would have thought so, for a man like that. But no: no, if you consider the matter, there would have been no cause in my life to occasion such a visit. So in fact, it was he came to see me.
-    -> iKnowItYourHabit
-
-= indeedWatsonQuit
 "Indeed, Watson, quite correct. I had {not known_from_college:known him at college, but } not seen him in four years. And then he came to see me. <>
-    -> Entered_room
-
-= iKnowItYourHabit
-"I know it your habit to begin tales with the weather and setting - 'It was a hot summer's day...' or 'It was a long autumn morning.' Well, I cannot remember the detail and I will refrain from inventing it. Let us simply say this.  <>
     -> Entered_room
 
 ==== Entered_room ====
@@ -508,25 +442,13 @@ He walked into my room in Montague Street. He had changed little from the way I 
 
 = youKnewWhyHeWasT
 "You knew why he was there, of course, as soon as he entered the room."
-    -> noNoNotAtAllHolm
-
-= youShookHisHand
-"You shook his hand."
-    -> iDidStoodUpFromM
-
-= noNoNotAtAllHolm
 "No. No, not at all." Holmes laughed. "This was early in my career and my skills of deduction were still very much being formed.  <>
-    -> iWasSurprisedToS
-
-= iDidStoodUpFromM
-"I did. Stood up from my chair and welcomed him in. 'How has all gone with you, Musgrave?' I asked.
-    -> heOnlyShookHisHe
-
-= iWasSurprisedToS
 I was surprised to see him, certainly, and asked after his health. The man looked quite uncertain at the question. 
     -> youHaveProbablyH
 
-= heOnlyShookHisHe
+= youShookHisHand
+"You shook his hand."
+"I did. Stood up from my chair and welcomed him in. 'How has all gone with you, Musgrave?' I asked.
 "He only shook his head.
     -> youHaveProbablyH
 
@@ -540,15 +462,12 @@ I was surprised to see him, certainly, and asked after his health. The man looke
 = goOnHolmesIUrged
   ~ impatient = impatient + 1
 "Go on, Holmes," I urged. "I want the facts of it, and to see how these trinkets of yours fit together."
-    -> inGoodTimeMyGood
+"In good time, my good man," Holmes chided. "Though I will be honest, my question to Musgrave was quite the same. <>
+    -> The_details
 
 = ahNowThisSoundsM
 "Ah. Now this sounds more like it." Going over to the sideboard I poured us both a short tot of brandy to sip by the firelight as we spoke. Holmes accepted his indifferently; he was lost in the telling of his tale.
 "You can imagine, Watson, with what eagerness I answered him. In my heart, I already believed I could succeed where others had failed, and here, at last, was the opportunity to test myself. <>
-    -> The_details
-
-= inGoodTimeMyGood
-"In good time, my good man," Holmes chided. "Though I will be honest, my question to Musgrave was quite the same. <>
     -> The_details
 
 ==== The_details ====

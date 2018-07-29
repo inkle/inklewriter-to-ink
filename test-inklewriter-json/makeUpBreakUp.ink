@@ -179,17 +179,11 @@ My darling.
 
 = aFingerOnYourLip
 <em>A finger on your lips.</em>
-    -> shhDontSpoilIt
-
-= aSilentSmileANod
-<em>A silent smile. A nod.</em>
-    -> goodIdeaDontSpoi
-
-= shhDontSpoilIt
 "Shh. Don't spoil it."<em></em>
   + [...] -> The_End
 
-= goodIdeaDontSpoi
+= aSilentSmileANod
+<em>A silent smile. A nod.</em>
 "Good idea. Don't spoil it."<em></em>
   + [...] -> The_End
 
