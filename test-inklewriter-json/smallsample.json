@@ -1,34 +1,17 @@
 {
     "title": "Untitled Story",
+    "created_at": "2018-07-27T12:56:44Z",
+    "updated_at": "2018-07-30T07:25:03Z",
+    "url_key": "3mq4",
     "data": {
-        "editorData": {
-            "textSize": 0,
-            "libraryVisible": false,
-            "authorName": "Anonymous",
-            "playPoint": "onceUponATime"
-        },
-        "allowCheckpoints": false,
         "initial": "onceUponATime",
+        "optionMirroring": true,
         "stitches": {
-            "onceUponATime": {
-                "content": [
-                    "Once upon a time...",
-                    {
-                        "notIfConditions": null,
-                        "option": "choice",
-                        "ifConditions": null,
-                        "linkPath": "hello"
-                    },
-                    {
-                        "pageNum": 1
-                    }
-                ]
-            },
             "world": {
                 "content": [
                     "world",
                     {
-                        "divert": "thing"
+                        "divert": "helloBoldWorldTh"
                     },
                     {
                         "flagName": "one marker"
@@ -38,23 +21,52 @@
                     }
                 ]
             },
-            "hello": {
+            "helloBoldWorldTh": {
                 "content": [
-                    "hello",
+                    "Hello *-bold-* world. This is /=italic=/."
+                ]
+            },
+            "hellou": {
+                "content": [
+                    "hellou",
                     {
                         "divert": "world"
+                    },
+                    {
+                        "flagName": "x = 5"
+                    },
+                    {
+                        "flagName": "y is four"
                     }
                 ]
             },
-            "thing": {
+            "onceUponATime": {
                 "content": [
-                    "thing"
+                    "Once upon a time...",
+                    {
+                        "linkPath": "hellou",
+                        "notIfConditions": null,
+                        "option": "choice",
+                        "ifConditions": null
+                    },
+                    {
+                        "linkPath": null,
+                        "notIfConditions": null,
+                        "option": "unlinked choice",
+                        "ifConditions": null
+                    },
+                    {
+                        "pageNum": 1
+                    }
                 ]
             }
         },
-        "optionMirroring": true
-    },
-    "url_key": "3mq4",
-    "updated_at": "2018-07-27T00:00:00Z",
-    "created_at": "2018-07-27T12:56:44Z"
+        "editorData": {
+            "playPoint": "onceUponATime",
+            "textSize": 0,
+            "libraryVisible": false,
+            "authorName": "Anonymous"
+        },
+        "allowCheckpoints": false
+    }
 }

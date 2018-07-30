@@ -120,6 +120,8 @@ class Stitch {
             func(divertTarget);
         }
         for (let c of this.choices) {
+            if (c.linkPath === null)
+                continue;
             var choiceTarget = this.owner.stitchesByName[c.linkPath];
             func(choiceTarget);
         }
@@ -218,6 +220,8 @@ class Story {
             if (target)
                 target.divertBackLinks.push(stitch);
             for (let choice of stitch.choices) {
+                if (choice.linkPath === null)
+                    continue;
                 let choiceTarget = this.stitchesByName[choice.linkPath];
                 if (choiceTarget)
                     choiceTarget.choiceBackLinks.push(stitch);
@@ -429,7 +433,6 @@ function convert(sourceJSON) {
             throw new Error("Got both choices AND a divert? Shouldn't be possible?");
         // Link up choices
         for (let choice of stitch.choices) {
-            let targetName = resolveDivertTargetStr(choice.linkPath, stitch);
             let conditionsTexts = choice.conditions.map(cond => {
                 let condTxt = cond.condition;
                 condTxt = replaceFlagNamesAndUpdateLogic(condTxt);
@@ -438,15 +441,26 @@ function convert(sourceJSON) {
                 return `{${condTxt}} `;
             });
             let conditionsStr = conditionsTexts.join("");
-            // When options are mirrored it has to be a bit uglier to enforce the newline after the mirrored text
-            if (story.optionMirroring) {
-                inkLines.push(`  + ${conditionsStr}${choice.text}`);
-                inkLines.push(`        -> ${targetName} `);
+            let targetName = null;
+            if (choice.linkPath) {
+                targetName = resolveDivertTargetStr(choice.linkPath, stitch);
             }
-            // When options aren't mirrored we can include the divert on the same line.
+            let choiceLine = "";
+            if (story.optionMirroring)
+                choiceLine = `  + ${conditionsStr}${choice.text}`;
+            else
+                choiceLine = `  + ${conditionsStr}[${choice.text}]`;
+            if (targetName) {
+                // When options are mirrored it has to be a bit uglier to enforce the newline after the mirrored text
+                // When options aren't mirrored we can include the divert on the same line.
+                if (story.optionMirroring)
+                    choiceLine += `\n       `;
+                choiceLine += ` -> ${targetName} `;
+            }
             else {
-                inkLines.push(`  + ${conditionsStr}[${choice.text}] -> ${targetName}`);
+                choiceLine += `\n      TODO: This choice is a loose end.`;
             }
+            inkLines.push(choiceLine);
         }
         // Divert, assumed to be mutually exclusive v.s. choices
         let nextStitch = null;

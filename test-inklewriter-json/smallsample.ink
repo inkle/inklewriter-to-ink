@@ -5,6 +5,8 @@
 # author: Anonymous
 // -----------------------------
 
+VAR x = 0
+VAR y_is_four = false
 VAR one_marker = false
 VAR second_marker = false
 
@@ -14,12 +16,16 @@ VAR second_marker = false
 ==== onceUponATime ====
 Once upon a time...
   + choice
-        -> hello 
+        -> hellou 
+  + unlinked choice
+      TODO: This choice is a loose end.
 
-= hello
-hello
+= hellou
+  ~ x = 5
+  ~ y_is_four = true
+hellou
   ~ one_marker = true
   ~ second_marker = true
 world
-thing
+Hello <strong>bold</strong> world. This is <em>italic</em>.
     -> END
