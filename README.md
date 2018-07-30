@@ -4,7 +4,7 @@ This project converts [inklewriter](https://www.inklestudios.com/inklewriter) st
 
 **[Convert your story on the inkle website](https://www.inklestudios.com/inklewriter/to-ink)**
 
-It's written in TypeScript. The main guts are in **inklewriter-convert.ts**. It's live hosted version consists of 3 files:
+It's written in TypeScript. The main guts are in **inklewriter-convert.ts**. The live hosted site consists of 3 files:
 
  * dist/inklewriter-convert.js (the compile TypeScript file)
  * index.html
