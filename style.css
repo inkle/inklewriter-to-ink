@@ -2,12 +2,34 @@
 
 html {
     background: #EEE;
+    padding: 0;
+    margin: 0;
 }
 
 body {
     font-family: 'Roboto', sans-serif;
-    max-width: 700px;
+    padding: 0;
+    margin: 0;
+
+}
+
+.logo_bar {
+    background: #111;
+    padding: 0;
+    margin: 0;
+}
+
+.logo_bar img {
+    display: block;
     margin: 0 auto;
+    width: 93px;
+    height: 50px;
+}
+
+.container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 10px;
 }
 
 h1, h3 {
@@ -17,26 +39,61 @@ h1, h3 {
 }
 
 h1 {
-    
-    font-size: 40pt;
-    padding-top: 50px;
+    font-size: 30pt;
+    padding-top: 0;
 }
 
 p, ul {
-    font-size: 14pt;
+    font-size: 12pt;
     line-height: 2em;
     color: #555;
 }
 
 input, button {
+    user-select: none;
+    padding: 0;
+    margin: 0;
+}
+
+.input_option {
+    font-family: Arial, Helvetica, sans-serif;
     display: block;
     margin: 0 auto;
-    user-select: none;
+    margin-left: 60px;
+    margin-right: 60px;
+    margin-bottom: 5px;
+    height: 20px;
+    padding: 10px;
+    padding-left: 20px;
+    background: white;
+    border-radius: 5px;
+}
 
+.input_option label {
+    display: inline-block;
+    width: 250px;
+    padding-right: 10px;
+    font-size: 10pt;
+    /* font-weight: bold; */
+    color: gray;
+}
+
+.input_option .file {
+    width: 180px;
+}
+
+pre.inline {
+    display: inline-block;
+    padding: 0;
+    margin: 0;
 }
 
 .hidden {
     display: none;
+}
+
+.converted_ink {
+    padding-top: 30px;
 }
 
 pre.ink {
@@ -47,4 +104,12 @@ pre.ink {
     border-radius: 10px;
     white-space: pre-wrap;  
     word-wrap: break-word;
+}
+
+.download_button {
+    display: block;
+    margin: 0 auto;
+    padding: 10px 40px 10px 40px;
+    border-radius: 10px;
+    font-size: 12pt;
 }
