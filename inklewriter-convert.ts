@@ -1,51 +1,16 @@
 
-interface ChoiceData {
-    linkPath: string | null,
-    ifConditions: IfConditionData[] | null,
-    option: string,
-    notIfConditions: NotIfConditionData[] | null
+// --------------------------------------
+// Types for the data directly coming from JSON
+// --------------------------------------
+
+// Top level interface for the JSON
+interface InklewriterJSON {
+    title : string,
+    data : InklewriterData, // main data blob (see interface below)
+    created_at: string, // date
+    url_key: string,
+    updated_at: string // date
 }
-
-interface NotIfConditionData {
-    notIfCondition: string
-}
-
-interface IfConditionData {
-    ifCondition: string
-}
-
-interface PageNumData {
-    pageNum: number
-}
-
-interface PageLabelData {
-    pageLabel: string
-}
-
-interface StitchData {
-    content: contentData[]
-}
-
-interface DivertData {
-    divert: string
-}
-
-// Equivalent to ink glue
-interface RunOnData {
-    runOn: true
-}
-
-interface FlagData {
-    flagName: string
-}
-
-interface ImageData {
-    image: string
-}
-
-type contentData = string | ChoiceData | NotIfConditionData | IfConditionData | DivertData | RunOnData | FlagData | PageNumData | PageLabelData | ImageData;
-
-
 
 interface InklewriterData {
     allowCheckpoints : boolean,
@@ -62,13 +27,61 @@ interface InklewriterData {
     }
 }
 
-interface InklewriterJSON {
-    title : string,
-    data : InklewriterData,
-    created_at: string, // date
-    url_key: string,
-    updated_at: string // date
+interface StitchData {
+    content: ContentData[]
 }
+
+type ContentData = TextData | ChoiceData | NotIfConditionData | IfConditionData | DivertData | RunOnData | FlagData | PageNumData | PageLabelData | ImageData;
+
+type TextData = string;
+
+interface ChoiceData {
+    linkPath: string | null,
+    ifConditions: IfConditionData[] | null,
+    option: string,
+    notIfConditions: NotIfConditionData[] | null
+}
+
+interface NotIfConditionData {
+    notIfCondition: string
+}
+
+interface IfConditionData {
+    ifCondition: string
+}
+
+interface DivertData {
+    divert: string
+}
+
+// Equivalent to ink glue
+interface RunOnData {
+    runOn: true
+}
+
+interface PageNumData {
+    pageNum: number
+}
+
+interface PageLabelData {
+    pageLabel: string
+}
+
+// In inklewriter the field was called "flagName" but in fact
+// the feature was expanded so that they could include expressions
+// such as "myFlag + 1" or "myFlag = 9". For the converter we
+// parse these on load.
+interface FlagData {
+    flagName: string
+}
+
+interface ImageData {
+    image: string   // image URL
+}
+
+// --------------------------------------
+// Classes for parsed / loaded story data
+// --------------------------------------
 
 class Condition {
 
@@ -305,6 +318,10 @@ class Story {
         return this.stitchesByName[this.initialStitchName];
     }
 
+    // We use the section labelling in inklewriter to construct
+    // ink-style knots. So the first thing is to find a sensible
+    // ordering. inklewriter itself does something very similar
+    // in order to order the index sidebar.
     private calculateSectionsAndOrdering() {
 
         let originalHeaders : Stitch[] = [];
@@ -382,7 +399,10 @@ class Story {
         }
 
 
-        // Set up backlinks
+        // Set up backlinks so that we can look both backwards
+        // and forwards to see whether stitches are directly
+        // linked together and therefore and simply be laid
+        // out consecutively in ink.
         for(let stitch of this.orderedStitches) {
             var target = stitch.divertTarget;
             if( target )
@@ -398,6 +418,9 @@ class Story {
     }
 }
 
+// Create an ink-compatible name for a stitch/knot/variable name (identifier) from
+// an inklewriter stitch / section / flag name, taking in a dictionary of the names
+// that have already been taken so that we can prevent collisions using numbering.
 function createIdentifierFromString(str : string, collisionDictionary : {[existingName:string]:any}) : string {
     let id = "";
     for(let c of str) {
@@ -430,13 +453,15 @@ function createIdentifierFromString(str : string, collisionDictionary : {[existi
     return id;
 }
 
-let inkLines : string[];
 
-export function convert(sourceJSON : InklewriterJSON) : string {
+// Main conversion function.
+export function convert(sourceJSON : InklewriterJSON, terminateAllLooseEnds : boolean) : string {
     
+    // Parse Story from the JSON
     var story = new Story(sourceJSON);
 
-    inkLines = [];
+    // Final output
+    let inkLines : string[] = [];
 
     // Create ink-specific stitch/knot name mappings out of the inklewriter content
     let inklewriterStitchToInkNames : { [inklewriterName:string]: string} = {};
@@ -462,6 +487,7 @@ export function convert(sourceJSON : InklewriterJSON) : string {
     inkLines.push(`// -----------------------------`);
     inkLines.push(``);
 
+    // Convert flag names to VAR names:
     // Flag names can have spaces, so we need to cover them all to proper identifiers
     let flagNamesToVarNames : { [flagName:string]: string } = {};
     let varNamesToFlagNames : { [varName:string]: string } = {};
@@ -477,19 +503,22 @@ export function convert(sourceJSON : InklewriterJSON) : string {
                 varNamesToFlagNames[varName] = flag.flagName;
                 orderedVarNames.push(varName);
             }
-
+            
+            // Infer the data types of the variables
             if( defaultValuesByVarName[varName] === undefined )
                 defaultValuesByVarName[varName] = flag.defaultValue;
         }
     }
     
-    // Variable declarations
+    // VAR declarations
     for(let varName of orderedVarNames) {
         let assumedDefault = defaultValuesByVarName[varName];
         if( assumedDefault === undefined ) assumedDefault = false;
         inkLines.push(`VAR ${varName} = ${assumedDefault}`);
     }
 
+    // Anywhere we have logic (e.g. conditionals, inline logic in main text)
+    // Do some fixing up to make it valid ink logic.
     function replaceFlagNamesAndUpdateLogic(logicStr : string) : string {
         if( logicStr != null && logicStr.length > 0 ) {
 
@@ -506,12 +535,18 @@ export function convert(sourceJSON : InklewriterJSON) : string {
         return logicStr;
     }
 
+    // Divert into first knot
     inkLines.push(``);
     inkLines.push(`-> ${initialKnotName}`);
     inkLines.push(``);
 
+    // We mostly process stitches consecutively, but when there are
+    // directly linked stitches we allow them to be "inlined" so that
+    // you don't need to use explicit stitch names for them all. Keep
+    // track of which ones have already been processed here.
     let processedStitchNames : { [name:string]: true } = {};
 
+    // Main conversion function for a single Stitch.
     function processStitch(stitch : Stitch, stitchIdx : number) {
 
         // Has this stitch already been processed?
@@ -520,6 +555,7 @@ export function convert(sourceJSON : InklewriterJSON) : string {
         processedStitchNames[stitch.name] = true;
 
         // Header is always explicitly named as a knot
+        // (Header is a stitch that begins a new inklewriter section)
         if( stitch.isHeader ) {
             var knotName = inklewriterStitchToInkNames[stitch.name];
             inkLines.push(`\n==== ${knotName} ====`);
@@ -554,13 +590,6 @@ export function convert(sourceJSON : InklewriterJSON) : string {
             inkLines.push(`{ ${conditionsStr}:`);
         }
 
-        // Flags
-        // TODO: Does assignment come before or after text?
-        for(let flag of stitch.flags) {
-            let exprWithVars = replaceFlagNamesAndUpdateLogic(flag.assignedExpression);
-            let conditionalIndent = isConditional ? "    " : " ";
-            inkLines.push(`${conditionalIndent} ~ ${flagNamesToVarNames[flag.flagName]} = ${exprWithVars}`);
-        }
 
         // Image
         if( stitch.image ) {
@@ -638,11 +667,22 @@ export function convert(sourceJSON : InklewriterJSON) : string {
             inkLines.push(line);
         }
 
+        // Flags
+        // (Evaluation of flags comes AFTER the main content.)
+        for(let flag of stitch.flags) {
+            let exprWithVars = replaceFlagNamesAndUpdateLogic(flag.assignedExpression);
+            let conditionalIndent = isConditional ? "    " : " ";
+            inkLines.push(`${conditionalIndent} ~ ${flagNamesToVarNames[flag.flagName]} = ${exprWithVars}`);
+        }
+
         if( isConditional )
             inkLines.push("}");
 
-        function resolveDivertTargetStr(targetPath : string, relativeStitch : Stitch) : string {
-            let targetStitch = story.stitchesByName[targetPath];
+        // Find the ink-specific target path given the original inklewriter stitch name.
+        // Resolve so it's either a simple name or a dot.separated name depending on whether
+        // we need to jump between ink knots (inklewriter sections).
+        function resolveDivertTargetStr(stitchName : string, relativeStitch : Stitch) : string {
+            let targetStitch = story.stitchesByName[stitchName];
             let targetName = inklewriterStitchToInkNames[targetStitch.name];
             if( !targetStitch.isHeader && targetStitch.header !== relativeStitch.header ) {
                 let targetHeaderName = inklewriterStitchToInkNames[targetStitch.header!.name];
@@ -689,7 +729,7 @@ export function convert(sourceJSON : InklewriterJSON) : string {
             inkLines.push(choiceLine);
         }
 
-        // Divert, assumed to be mutually exclusive v.s. choices
+        // Divert (mutually exclusive v.s. choices)
         let nextStitch : Stitch | null = null;
         let divertTargetFollowsOnDirectly = false;
         if( stitch.divert ) {
@@ -701,24 +741,24 @@ export function convert(sourceJSON : InklewriterJSON) : string {
             }
         }
 
-        // Immediately recurse if we're following straight on
+        // Immediately recurse if we're following straight on to more content 
+        // within this current ink stitch/knot
         if( divertTargetFollowsOnDirectly && nextStitch !== null ) {
             let nextStitchIdx = story.orderedStitches.indexOf(nextStitch);
             processStitch(nextStitch, nextStitchIdx);
         }
 
         // Assume all loose ends are complete, or not?
-        if( !stitch.divert && stitch.choices.length === 0 ) {
+        if( !stitch.divert && stitch.choices.length === 0 && terminateAllLooseEnds ) {
             inkLines.push(`    -> END`);
         }
     }
 
-    // Process all stitches
+    // Convert all stitches to ink
     for(let stitchIdx = 0; stitchIdx < story.orderedStitches.length; stitchIdx++) {
         let stitch = story.orderedStitches[stitchIdx];
         processStitch(stitch, stitchIdx);
     }
-
 
     // Final ink
     return inkLines.join("\n");

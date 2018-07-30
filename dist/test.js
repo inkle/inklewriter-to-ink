@@ -15,7 +15,7 @@ for (let filename of testFiles) {
     let json = JSON.parse(jsonText);
     try {
         console.time(filename);
-        let inkText = inklewriter_convert_1.convert(json);
+        let inkText = inklewriter_convert_1.convert(json, true);
         console.timeEnd(filename);
         fs.writeFileSync(`test-inklewriter-json/${filename}.ink`, inkText, "utf8");
     }

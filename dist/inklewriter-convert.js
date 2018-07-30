@@ -1,5 +1,11 @@
 "use strict";
+// --------------------------------------
+// Types for the data directly coming from JSON
+// --------------------------------------
 Object.defineProperty(exports, "__esModule", { value: true });
+// --------------------------------------
+// Classes for parsed / loaded story data
+// --------------------------------------
 class Condition {
     constructor(condition, isNot) {
         this.condition = condition;
@@ -156,6 +162,10 @@ class Story {
     get firstStitch() {
         return this.stitchesByName[this.initialStitchName];
     }
+    // We use the section labelling in inklewriter to construct
+    // ink-style knots. So the first thing is to find a sensible
+    // ordering. inklewriter itself does something very similar
+    // in order to order the index sidebar.
     calculateSectionsAndOrdering() {
         let originalHeaders = [];
         function searchLinksForSortIndices(stitch, originalHeader, currentDepth) {
@@ -214,7 +224,10 @@ class Story {
             stitch.header = header;
             stitch.pageNum = pageNum;
         }
-        // Set up backlinks
+        // Set up backlinks so that we can look both backwards
+        // and forwards to see whether stitches are directly
+        // linked together and therefore and simply be laid
+        // out consecutively in ink.
         for (let stitch of this.orderedStitches) {
             var target = stitch.divertTarget;
             if (target)
@@ -229,6 +242,9 @@ class Story {
         }
     }
 }
+// Create an ink-compatible name for a stitch/knot/variable name (identifier) from
+// an inklewriter stitch / section / flag name, taking in a dictionary of the names
+// that have already been taken so that we can prevent collisions using numbering.
 function createIdentifierFromString(str, collisionDictionary) {
     let id = "";
     for (let c of str) {
@@ -255,10 +271,12 @@ function createIdentifierFromString(str, collisionDictionary) {
     }
     return id;
 }
-let inkLines;
-function convert(sourceJSON) {
+// Main conversion function.
+function convert(sourceJSON, terminateAllLooseEnds) {
+    // Parse Story from the JSON
     var story = new Story(sourceJSON);
-    inkLines = [];
+    // Final output
+    let inkLines = [];
     // Create ink-specific stitch/knot name mappings out of the inklewriter content
     let inklewriterStitchToInkNames = {};
     let inkNamesUsage = {};
@@ -277,6 +295,7 @@ function convert(sourceJSON) {
     inkLines.push(`# author: ${story.author}`);
     inkLines.push(`// -----------------------------`);
     inkLines.push(``);
+    // Convert flag names to VAR names:
     // Flag names can have spaces, so we need to cover them all to proper identifiers
     let flagNamesToVarNames = {};
     let varNamesToFlagNames = {};
@@ -291,17 +310,20 @@ function convert(sourceJSON) {
                 varNamesToFlagNames[varName] = flag.flagName;
                 orderedVarNames.push(varName);
             }
+            // Infer the data types of the variables
             if (defaultValuesByVarName[varName] === undefined)
                 defaultValuesByVarName[varName] = flag.defaultValue;
         }
     }
-    // Variable declarations
+    // VAR declarations
     for (let varName of orderedVarNames) {
         let assumedDefault = defaultValuesByVarName[varName];
         if (assumedDefault === undefined)
             assumedDefault = false;
         inkLines.push(`VAR ${varName} = ${assumedDefault}`);
     }
+    // Anywhere we have logic (e.g. conditionals, inline logic in main text)
+    // Do some fixing up to make it valid ink logic.
     function replaceFlagNamesAndUpdateLogic(logicStr) {
         if (logicStr != null && logicStr.length > 0) {
             // Replace flag names with VAR names
@@ -315,16 +337,23 @@ function convert(sourceJSON) {
         }
         return logicStr;
     }
+    // Divert into first knot
     inkLines.push(``);
     inkLines.push(`-> ${initialKnotName}`);
     inkLines.push(``);
+    // We mostly process stitches consecutively, but when there are
+    // directly linked stitches we allow them to be "inlined" so that
+    // you don't need to use explicit stitch names for them all. Keep
+    // track of which ones have already been processed here.
     let processedStitchNames = {};
+    // Main conversion function for a single Stitch.
     function processStitch(stitch, stitchIdx) {
         // Has this stitch already been processed?
         if (processedStitchNames[stitch.name])
             return;
         processedStitchNames[stitch.name] = true;
         // Header is always explicitly named as a knot
+        // (Header is a stitch that begins a new inklewriter section)
         if (stitch.isHeader) {
             var knotName = inklewriterStitchToInkNames[stitch.name];
             inkLines.push(`\n==== ${knotName} ====`);
@@ -352,13 +381,6 @@ function convert(sourceJSON) {
             });
             let conditionsStr = conditionsTexts.join(" and ");
             inkLines.push(`{ ${conditionsStr}:`);
-        }
-        // Flags
-        // TODO: Does assignment come before or after text?
-        for (let flag of stitch.flags) {
-            let exprWithVars = replaceFlagNamesAndUpdateLogic(flag.assignedExpression);
-            let conditionalIndent = isConditional ? "    " : " ";
-            inkLines.push(`${conditionalIndent} ~ ${flagNamesToVarNames[flag.flagName]} = ${exprWithVars}`);
         }
         // Image
         if (stitch.image) {
@@ -418,10 +440,20 @@ function convert(sourceJSON) {
                 line = "    " + line;
             inkLines.push(line);
         }
+        // Flags
+        // (Evaluation of flags comes AFTER the main content.)
+        for (let flag of stitch.flags) {
+            let exprWithVars = replaceFlagNamesAndUpdateLogic(flag.assignedExpression);
+            let conditionalIndent = isConditional ? "    " : " ";
+            inkLines.push(`${conditionalIndent} ~ ${flagNamesToVarNames[flag.flagName]} = ${exprWithVars}`);
+        }
         if (isConditional)
             inkLines.push("}");
-        function resolveDivertTargetStr(targetPath, relativeStitch) {
-            let targetStitch = story.stitchesByName[targetPath];
+        // Find the ink-specific target path given the original inklewriter stitch name.
+        // Resolve so it's either a simple name or a dot.separated name depending on whether
+        // we need to jump between ink knots (inklewriter sections).
+        function resolveDivertTargetStr(stitchName, relativeStitch) {
+            let targetStitch = story.stitchesByName[stitchName];
             let targetName = inklewriterStitchToInkNames[targetStitch.name];
             if (!targetStitch.isHeader && targetStitch.header !== relativeStitch.header) {
                 let targetHeaderName = inklewriterStitchToInkNames[targetStitch.header.name];
@@ -462,7 +494,7 @@ function convert(sourceJSON) {
             }
             inkLines.push(choiceLine);
         }
-        // Divert, assumed to be mutually exclusive v.s. choices
+        // Divert (mutually exclusive v.s. choices)
         let nextStitch = null;
         let divertTargetFollowsOnDirectly = false;
         if (stitch.divert) {
@@ -473,17 +505,18 @@ function convert(sourceJSON) {
                 inkLines.push(`    -> ${targetName}`);
             }
         }
-        // Immediately recurse if we're following straight on
+        // Immediately recurse if we're following straight on to more content 
+        // within this current ink stitch/knot
         if (divertTargetFollowsOnDirectly && nextStitch !== null) {
             let nextStitchIdx = story.orderedStitches.indexOf(nextStitch);
             processStitch(nextStitch, nextStitchIdx);
         }
         // Assume all loose ends are complete, or not?
-        if (!stitch.divert && stitch.choices.length === 0) {
+        if (!stitch.divert && stitch.choices.length === 0 && terminateAllLooseEnds) {
             inkLines.push(`    -> END`);
         }
     }
-    // Process all stitches
+    // Convert all stitches to ink
     for (let stitchIdx = 0; stitchIdx < story.orderedStitches.length; stitchIdx++) {
         let stitch = story.orderedStitches[stitchIdx];
         processStitch(stitch, stitchIdx);

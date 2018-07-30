@@ -19,7 +19,7 @@ for(let filename of testFiles) {
 
         console.time(filename);
 
-        let inkText = convert(json);
+        let inkText = convert(json, true);
 
         console.timeEnd(filename);
 
