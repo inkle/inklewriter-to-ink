@@ -29,3 +29,13 @@ hellou
 world
 Hello <strong>bold</strong> world. This is <em>italic</em>.
     -> END
+
+= textConnectedToU
+Text connected to unused section.
+    -> END
+
+= thisIsAnUnusedSt
+This is an unused stitch
+And this stitch links to the unused one.
+  + Choice on unused stitch
+        -> textConnectedToU 
