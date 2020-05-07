@@ -481,7 +481,6 @@ export function convert(sourceJSON : InklewriterJSON, terminateAllLooseEnds : bo
 
     inkLines.push(`// ---- ${sourceJSON.title} ----`);
     inkLines.push(`// Converted from original inklewriter URL:`);
-    inkLines.push(`// http://writer.inklestudios.com/stories/${sourceJSON.url_key}`);
     inkLines.push(`# title: ${story.title}`);
     inkLines.push(`# author: ${story.author}`);
     inkLines.push(`// -----------------------------`);
